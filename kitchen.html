@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Монитор кухни</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.3.0/dist/tabler-icons.min.css">
+<style>
+* { box-sizing:border-box;margin:0;padding:0; }
+:root {
+  --acc:#1a7a4a;--acc-bg:#d4ede0;--acc-dk:#145e38;
+  --bg:#fff;--bg2:#f5f5f3;--bg3:#eeecea;
+  --txt:#1a1a18;--txt2:#5f5e5a;--txt3:#888780;
+  --bdr:rgba(0,0,0,0.12);--bdr2:rgba(0,0,0,0.22);
+  --r:14px;--rm:8px;
+}
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);min-height:100vh;color:var(--txt); }
+.wrap { max-width:720px;margin:0 auto;padding:20px 16px 80px; }
+.card { background:var(--bg);border:0.5px solid var(--bdr);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:12px; }
+.card.s-new { border-left:3px solid #E24B4A; }
+.card.s-cooking { border-left:3px solid #BA7517; }
+.card.s-ready { border-left:3px solid #1a7a4a; }
+.card.s-done { border-left:3px solid #888;opacity:0.75; }
+.badge { display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:500; }
+.b-new{background:#FCEBEB;color:#A32D2D;}.b-cooking{background:#FAEEDA;color:#854F0B;}.b-ready{background:#d4ede0;color:#145e38;}.b-done{background:#f5f5f3;color:#888;}
+.btn{padding:9px 14px;border-radius:var(--rm);border:1px solid var(--bdr2);background:var(--bg2);color:var(--txt2);font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:inherit;}
+.btn.prim{background:var(--acc);color:#fff;border-color:var(--acc);}
+.stat-card{background:var(--bg2);border-radius:var(--rm);padding:12px;text-align:center;}
+.tab-btn{flex:1;padding:10px;border:none;background:transparent;font-size:14px;color:var(--txt3);cursor:pointer;font-family:inherit;border-bottom:2px solid transparent;}
+.tab-btn.active{color:var(--acc);border-bottom-color:var(--acc);font-weight:500;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--acc);animation:pulse 2s infinite;display:inline-block;}
+.dot.red{background:#E24B4A;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+    <div>
+      <div style="font-size:11px;color:var(--txt3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;">Кухня</div>
+      <h1 style="font-size:22px;font-weight:500;">Монитор заказов</h1>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="dot" id="conn-dot"></span>
+      <span style="font-size:13px;color:var(--txt2);" id="conn-status">Подключение...</span>
+      <span style="font-size:13px;color:var(--txt3);" id="clk">--:--</span>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;">
+    <div class="stat-card"><div style="font-size:22px;font-weight:500;" id="sn">0</div><div style="font-size:11px;color:var(--txt3);margin-top:2px;">Новые</div></div>
+    <div class="stat-card"><div style="font-size:22px;font-weight:500;" id="sc">0</div><div style="font-size:11px;color:var(--txt3);margin-top:2px;">Готовятся</div></div>
+    <div class="stat-card"><div style="font-size:22px;font-weight:500;" id="sr">0</div><div style="font-size:11px;color:var(--txt3);margin-top:2px;">Готовы</div></div>
+    <div class="stat-card"><div style="font-size:22px;font-weight:500;" id="sd">0</div><div style="font-size:11px;color:var(--txt3);margin-top:2px;">Выполнено</div></div>
+  </div>
+
+  <div style="display:flex;background:var(--bg);border-radius:var(--r);border:0.5px solid var(--bdr);margin-bottom:20px;overflow:hidden;">
+    <button class="tab-btn active" id="tab-active" onclick="switchTab('active')"><i class="ti ti-flame" style="font-size:14px;"></i> Активные</button>
+    <button class="tab-btn" id="tab-tables" onclick="switchTab('tables')"><i class="ti ti-armchair" style="font-size:14px;"></i> Столы</button>
+    <button class="tab-btn" id="tab-history" onclick="switchTab('history')"><i class="ti ti-history" style="font-size:14px;"></i> История</button>
+  </div>
+
+  <div id="grid" style="display:flex;flex-direction:column;gap:12px;">
+    <div style="text-align:center;padding:48px 0;color:var(--txt3);font-size:14px;">Загрузка...</div>
+  </div>
+</div>
+
+<script>
+const API = 'https://restaurant-api-production-4fdd.up.railway.app';
+const WS_URL = 'wss://restaurant-api-production-4fdd.up.railway.app';
+
+let activeOrders=[], historyOrders=[], tableSessions=[], currentTab='active', ws=null;
+
+function mins(at){return Math.floor((Date.now()-new Date(at).getTime())/60000);}
+function timerColor(m,s){if(s==='ready'||s==='done')return'#1a7a4a';if(m<10)return'#1a7a4a';if(m<20)return'#BA7517';return'#E24B4A';}
+
+function switchTab(tab) {
+  currentTab=tab;
+  ['active','tables','history'].forEach(t=>document.getElementById('tab-'+t).classList.toggle('active',t===tab));
+  if(tab==='tables') renderTables(); else render();
+}
+
+async function advance(id) {
+  const o=activeOrders.find(x=>x.id===id);if(!o)return;
+  const next=o.status==='new'?'cooking':o.status==='cooking'?'ready':null;if(!next)return;
+  await fetch(API+'/api/orders/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:next,has_additions:false})});
+}
+
+async function dismiss(id) {
+  await fetch(API+'/api/orders/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'done'})});
+}
+
+async function closeTable(sessionId) {
+  if(!confirm('Закрыть стол? Следующие гости начнут с чистого листа.')) return;
+  await fetch(API+'/api/sessions/'+sessionId+'/close',{method:'PUT'});
+  await loadTableSessions();
+  renderTables();
+}
+
+function renderCard(o, isHistory) {
+  const m=mins(o.created_at);
+  const col=timerColor(m,o.status);
+  const bCls=o.status==='new'?'b-new':o.status==='cooking'?'b-cooking':o.status==='ready'?'b-ready':'b-done';
+  const bTxt=o.status==='new'?'Новый':o.status==='cooking'?'Готовится':o.status==='ready'?'Готово':'Выполнен';
+  const bIco=o.status==='new'?'ti-circle':o.status==='cooking'?'ti-flame':o.status==='ready'?'ti-check':'ti-checks';
+  const items=(o.items||[]).map(i=>`<div style="display:flex;justify-content:space-between;font-size:13px;color:var(--txt2);"><span>${i.name}</span><span style="color:var(--txt3);">× ${i.qty||1}</span></div>`).join('');
+  const orderTotal=(o.items||[]).reduce((s,i)=>s+i.price*(i.qty||1),0);
+  const time=new Date(o.created_at).toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'});
+  const isUpdated=o.has_additions===true;
+
+  let btns='';
+  if(!isHistory){
+    if(o.status==='new') btns+=`<button class="btn prim" onclick="advance('${o.id}')"><i class="ti ti-flame"></i> Начать готовить</button>`;
+    if(o.status==='cooking') btns+=`<button class="btn prim" onclick="advance('${o.id}')"><i class="ti ti-check"></i> Готово</button>`;
+    if(o.status==='ready') btns+=`<button class="btn prim" onclick="dismiss('${o.id}')"><i class="ti ti-checks"></i> Выдан</button>`;
+    if(isUpdated) btns+=`<span style="background:#fff3cd;color:#856404;border:1px solid #ffc107;border-radius:6px;padding:7px 12px;font-size:12px;font-weight:500;display:inline-flex;align-items:center;gap:4px;"><i class="ti ti-plus" style="font-size:13px;"></i> Доп. заказ</span>`;
+  }
+
+  return `<div class="card s-${o.status}">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="background:var(--bg2);border:0.5px solid var(--bdr);border-radius:var(--rm);padding:8px 12px;text-align:center;min-width:52px;">
+          <div style="font-size:10px;color:var(--txt3);letter-spacing:1px;">СТОЛ</div>
+          <div style="font-size:22px;font-weight:500;line-height:1.2;">${o.table_number}</div>
+        </div>
+        <div>
+          <div style="font-size:15px;font-weight:500;">${o.guest_name_display||o.guest_name}</div>
+          <div style="font-size:12px;color:var(--txt3);">${time} · ${orderTotal} ₽</div>
+        </div>
+      </div>
+      <div style="text-align:right;flex-shrink:0;">
+        <span class="badge ${bCls}"><i class="ti ${bIco}" style="font-size:10px;"></i> ${bTxt}</span>
+        <div style="font-size:13px;font-weight:500;color:${col};margin-top:6px;"><i class="ti ti-clock" style="font-size:12px;"></i> ${m} мин</div>
+      </div>
+    </div>
+    <div style="border-top:0.5px solid var(--bdr);padding-top:10px;display:flex;flex-direction:column;gap:6px;">${items}</div>
+    ${btns?`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">${btns}</div>`:''}
+  </div>`;
+}
+
+function render() {
+  const nw=activeOrders.filter(o=>o.status==='new');
+  const ck=activeOrders.filter(o=>o.status==='cooking');
+  const rd=activeOrders.filter(o=>o.status==='ready');
+  document.getElementById('sn').textContent=nw.length;
+  document.getElementById('sc').textContent=ck.length;
+  document.getElementById('sr').textContent=rd.length;
+  document.getElementById('sd').textContent=historyOrders.length;
+  const g=document.getElementById('grid');
+  if(currentTab==='active'){
+    const sorted=[...nw,...ck,...rd];
+    if(!sorted.length){g.innerHTML='<div style="text-align:center;padding:48px 0;color:var(--txt3);font-size:14px;"><i class="ti ti-checks" style="font-size:36px;display:block;margin-bottom:8px;"></i>Все заказы выполнены</div>';return;}
+    g.innerHTML=sorted.map(o=>renderCard(o,false)).join('');
+  } else if(currentTab==='history'){
+    if(!historyOrders.length){g.innerHTML='<div style="text-align:center;padding:48px 0;color:var(--txt3);font-size:14px;">История пуста</div>';return;}
+    g.innerHTML=historyOrders.map(o=>renderCard(o,true)).join('');
+  }
+}
+
+function renderTables() {
+  const g=document.getElementById('grid');
+  if(!tableSessions.length){g.innerHTML='<div style="text-align:center;padding:48px 0;color:var(--txt3);font-size:14px;"><i class="ti ti-armchair" style="font-size:36px;display:block;margin-bottom:8px;"></i>Нет активных столов</div>';return;}
+  g.innerHTML=tableSessions.map(sess=>{
+    const orders=sess.orders||[];
+    const total=orders.reduce((s,o)=>(o.items||[]).reduce((ss,i)=>ss+i.price*(i.qty||1),0)+s,0);
+    const guests=[...new Set(orders.map(o=>o.guest_name_display||o.guest_name))];
+    const openedAt=new Date(sess.created_at).toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'});
+    return `<div class="card" style="border-left:3px solid var(--acc);">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="background:var(--bg2);border:0.5px solid var(--bdr);border-radius:var(--rm);padding:8px 12px;text-align:center;min-width:52px;">
+            <div style="font-size:10px;color:var(--txt3);letter-spacing:1px;">СТОЛ</div>
+            <div style="font-size:22px;font-weight:500;line-height:1.2;">${sess.table_number}</div>
+          </div>
+          <div><div style="font-size:14px;font-weight:500;">${guests.join(', ')||'—'}</div><div style="font-size:12px;color:var(--txt3);">Открыт в ${openedAt} · ${orders.length} заказов</div></div>
+        </div>
+        <div style="text-align:right;"><div style="font-size:18px;font-weight:500;color:var(--acc);">${total} ₽</div><div style="font-size:11px;color:var(--txt3);margin-top:2px;">общий счёт</div></div>
+      </div>
+      <div style="border-top:0.5px solid var(--bdr);padding-top:10px;display:flex;flex-direction:column;gap:6px;">
+        ${orders.map(o=>{
+          const ot=(o.items||[]).reduce((s,i)=>s+i.price*(i.qty||1),0);
+          const bCls=o.status==='done'?'b-done':o.status==='ready'?'b-ready':o.status==='cooking'?'b-cooking':'b-new';
+          const bTxt=o.status==='done'?'Выдан':o.status==='ready'?'Готово':o.status==='cooking'?'Готовится':'Новый';
+          return `<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
+            <span style="font-weight:500;">${o.guest_name_display||o.guest_name}</span>
+            <div style="display:flex;align-items:center;gap:8px;"><span class="badge ${bCls}" style="font-size:10px;padding:2px 8px;">${bTxt}</span><span style="font-weight:500;">${ot} ₽</span></div>
+          </div>`;
+        }).join('')}
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn" style="flex:1;background:#FCEBEB;color:#A32D2D;border-color:#F7C1C1;" onclick="closeTable('${sess.id}')"><i class="ti ti-door-exit"></i> Закрыть стол — гости ушли</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function loadOrders() {
+  const [activeRes,historyRes]=await Promise.all([
+    fetch(API+'/api/orders/active'),
+    fetch(API+'/api/orders/history')
+  ]);
+  activeOrders=await activeRes.json();
+  historyOrders=await historyRes.json();
+  render();
+}
+
+async function loadTableSessions() {
+  const res=await fetch(API+'/api/sessions/open');
+  tableSessions=await res.json();
+}
+
+function connectWS() {
+  ws=new WebSocket(WS_URL);
+  ws.onopen=()=>{
+    document.getElementById('conn-dot').classList.remove('red');
+    document.getElementById('conn-status').textContent='В сети';
+  };
+  ws.onclose=()=>{
+    document.getElementById('conn-dot').classList.add('red');
+    document.getElementById('conn-status').textContent='Переподключение...';
+    setTimeout(connectWS,3000);
+  };
+  ws.onmessage=(e)=>{
+    try {
+      const msg=JSON.parse(e.data);
+      if(msg.type==='new_order'){
+        activeOrders.unshift(msg.order);
+        loadTableSessions();
+      } else if(msg.type==='order_updated'){
+        const updated=msg.order;
+        if(updated.status==='done'){
+          activeOrders=activeOrders.filter(o=>o.id!==updated.id);
+          historyOrders.unshift(updated);
+        } else {
+          const idx=activeOrders.findIndex(o=>o.id===updated.id);
+          if(idx!==-1) activeOrders[idx]=updated; else activeOrders.push(updated);
+        }
+        loadTableSessions();
+      } else if(msg.type==='session_closed'){
+        loadTableSessions();
+      }
+      if(currentTab==='tables') renderTables(); else render();
+    } catch(err){}
+  };
+}
+
+function tick(){document.getElementById('clk').textContent=new Date().toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'});}
+
+loadOrders();
+loadTableSessions();
+connectWS();
+tick();
+setInterval(()=>{if(currentTab!=='tables')render();tick();},30000);
+</script>
+</body>
+</html>

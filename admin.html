@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Управление меню</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.3.0/dist/tabler-icons.min.css">
+<style>
+* { box-sizing:border-box;margin:0;padding:0; }
+:root { --acc:#1a7a4a;--acc-bg:#d4ede0;--acc-dk:#145e38;--bg:#fff;--bg2:#f5f5f3;--txt:#1a1a18;--txt2:#5f5e5a;--txt3:#888780;--bdr:rgba(0,0,0,0.12);--bdr2:rgba(0,0,0,0.22);--r:14px;--rm:8px; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#eeecea;min-height:100vh;color:var(--txt); }
+.wrap { max-width:760px;margin:0 auto;padding:24px 16px 80px; }
+input,select,textarea { width:100%;padding:12px 14px;font-size:14px;border:1px solid var(--bdr2);border-radius:var(--rm);background:var(--bg);color:var(--txt);outline:none;font-family:inherit; }
+input:focus,select:focus,textarea:focus { border-color:var(--acc); }
+textarea { resize:vertical;min-height:80px; }
+.btn-main { padding:12px 20px;background:var(--acc);color:#fff;border:none;border-radius:var(--rm);font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px; }
+.btn-sec { padding:10px 16px;background:var(--bg2);color:var(--txt2);border:1px solid var(--bdr2);border-radius:var(--rm);font-size:13px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px; }
+.btn-danger { padding:10px 16px;background:#FCEBEB;color:#A32D2D;border:1px solid #F7C1C1;border-radius:var(--rm);font-size:13px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px; }
+.card { background:var(--bg);border:0.5px solid var(--bdr);border-radius:var(--r);padding:16px; }
+.badge { display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500; }
+.cat-hot{background:#FAEEDA;color:#854F0B;}.cat-salads{background:#EAF3DE;color:#3B6D11;}.cat-soups{background:#E6F1FB;color:#185FA5;}.cat-drinks{background:#d4ede0;color:#145e38;}
+.toggle{position:relative;width:44px;height:24px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;inset:0;background:var(--bdr2);border-radius:24px;cursor:pointer;transition:0.2s;}
+.toggle input:checked+.toggle-slider{background:var(--acc);}
+.toggle-slider:before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:white;border-radius:50%;transition:0.2s;}
+.toggle input:checked+.toggle-slider:before{transform:translateX(20px);}
+.upload-zone{border:2px dashed var(--bdr2);border-radius:var(--rm);padding:24px;text-align:center;cursor:pointer;}
+.upload-zone img{width:80px;height:80px;object-fit:cover;border-radius:var(--rm);margin-bottom:8px;}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;align-items:center;justify-content:center;padding:16px;}
+.overlay.active{display:flex;}
+.modal{background:var(--bg);border-radius:var(--r);padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+    <div>
+      <div style="font-size:11px;color:var(--txt3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;">Панель управления</div>
+      <h1 style="font-size:22px;font-weight:500;">Меню ресторана</h1>
+    </div>
+    <button class="btn-main" onclick="openModal()"><i class="ti ti-plus"></i> Добавить блюдо</button>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;">
+    <button class="btn-sec" data-cat="all" onclick="filterCat(this,'all')" style="background:var(--acc);color:#fff;border-color:var(--acc);">Все</button>
+    <button class="btn-sec" data-cat="hot" onclick="filterCat(this,'hot')">🔥 Горячее</button>
+    <button class="btn-sec" data-cat="salads" onclick="filterCat(this,'salads')">🥗 Салаты</button>
+    <button class="btn-sec" data-cat="soups" onclick="filterCat(this,'soups')">🍲 Супы</button>
+    <button class="btn-sec" data-cat="drinks" onclick="filterCat(this,'drinks')">🥤 Напитки</button>
+  </div>
+  <div id="menu-list" style="display:flex;flex-direction:column;gap:12px;"></div>
+</div>
+
+<div class="overlay" id="modal">
+  <div class="modal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <h2 style="font-size:18px;font-weight:500;" id="modal-title">Новое блюдо</h2>
+      <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--txt3);">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <div style="font-size:13px;color:var(--txt2);margin-bottom:6px;">Фото блюда</div>
+        <div class="upload-zone" onclick="document.getElementById('photo-input').click()" id="upload-zone">
+          <div id="upload-preview"><i class="ti ti-photo" style="font-size:32px;color:var(--txt3);display:block;margin-bottom:8px;"></i><div style="font-size:13px;color:var(--txt3);">Нажмите чтобы загрузить фото</div></div>
+        </div>
+        <input type="file" id="photo-input" accept="image/*" style="display:none;" onchange="previewPhoto(this)">
+      </div>
+      <div><div style="font-size:13px;color:var(--txt2);margin-bottom:6px;">Название *</div><input type="text" id="f-name" placeholder="Шашлык из баранины" /></div>
+      <div><div style="font-size:13px;color:var(--txt2);margin-bottom:6px;">Описание</div><textarea id="f-desc" placeholder="Состав, способ приготовления..."></textarea></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div><div style="font-size:13px;color:var(--txt2);margin-bottom:6px;">Цена (₽) *</div><input type="number" id="f-price" placeholder="450" /></div>
+        <div><div style="font-size:13px;color:var(--txt2);margin-bottom:6px;">Время готовки</div><input type="text" id="f-time" placeholder="20 мин" /></div>
+      </div>
+      <div><div style="font-size:13px;color:var(--txt2);margin-bottom:6px;">Категория *</div>
+        <select id="f-cat"><option value="hot">🔥 Горячее</option><option value="salads">🥗 Салаты</option><option value="soups">🍲 Супы</option><option value="drinks">🥤 Напитки</option></select>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:8px;">
+        <button class="btn-main" id="save-btn" onclick="saveItem()" style="flex:1;"><i class="ti ti-check"></i> Сохранить</button>
+        <button class="btn-sec" onclick="closeModal()">Отмена</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://restaurant-api-production-4fdd.up.railway.app';
+const CAT_LABELS={hot:'Горячее',salads:'Салаты',soups:'Супы',drinks:'Напитки'};
+const CAT_CLS={hot:'cat-hot',salads:'cat-salads',soups:'cat-soups',drinks:'cat-drinks'};
+let items=[], currentCat='all', editingId=null, pendingPhotoFile=null;
+
+async function loadMenu() {
+  const res=await fetch(API+'/api/menu/all');
+  items=await res.json();
+  render();
+}
+
+function filterCat(btn,cat) {
+  document.querySelectorAll('[data-cat]').forEach(b=>{b.style.background='';b.style.color='';b.style.borderColor='';});
+  btn.style.background='var(--acc)';btn.style.color='#fff';btn.style.borderColor='var(--acc)';
+  currentCat=cat;render();
+}
+
+function render() {
+  const filtered=currentCat==='all'?items:items.filter(i=>i.category===currentCat);
+  const el=document.getElementById('menu-list');
+  if(!filtered.length){el.innerHTML='<div style="text-align:center;padding:48px 0;color:var(--txt3);">Нет блюд</div>';return;}
+  el.innerHTML=filtered.map(item=>`
+    <div class="card" style="opacity:${item.available?1:0.5};">
+      <div style="display:flex;gap:14px;align-items:flex-start;">
+        ${item.image_url?`<img src="${item.image_url}" style="width:72px;height:72px;object-fit:cover;border-radius:var(--rm);flex-shrink:0;" />`:`<div style="width:72px;height:72px;background:var(--bg2);border-radius:var(--rm);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-photo" style="font-size:24px;color:var(--txt3);"></i></div>`}
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+            <div style="font-size:15px;font-weight:500;">${item.name}</div>
+            <span class="badge ${CAT_CLS[item.category]||''}">${CAT_LABELS[item.category]||item.category}</span>
+            ${!item.available?'<span class="badge" style="background:#f5f5f3;color:#888;">Скрыто</span>':''}
+          </div>
+          ${item.description?`<div style="font-size:12px;color:var(--txt3);margin-bottom:6px;line-height:1.4;">${item.description}</div>`:''}
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span style="font-size:16px;font-weight:500;color:var(--acc);">${item.price} ₽</span>
+            <span style="font-size:12px;color:var(--txt3);"><i class="ti ti-clock" style="font-size:12px;"></i> ${item.cook_time||'—'}</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;border-top:0.5px solid var(--bdr);padding-top:12px;flex-wrap:wrap;">
+        <button class="btn-sec" onclick="editItem('${item.id}')"><i class="ti ti-edit"></i> Редактировать</button>
+        <label class="toggle" style="margin-left:auto;margin-top:2px;">
+          <input type="checkbox" ${item.available?'checked':''} onchange="toggleAvailable('${item.id}',this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+        <button class="btn-danger" onclick="deleteItem('${item.id}')"><i class="ti ti-trash"></i></button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openModal(item=null) {
+  editingId=item?item.id:null;pendingPhotoFile=null;
+  document.getElementById('modal-title').textContent=item?'Редактировать блюдо':'Новое блюдо';
+  document.getElementById('f-name').value=item?.name||'';
+  document.getElementById('f-desc').value=item?.description||'';
+  document.getElementById('f-price').value=item?.price||'';
+  document.getElementById('f-time').value=item?.cook_time||'';
+  document.getElementById('f-cat').value=item?.category||'hot';
+  document.getElementById('upload-preview').innerHTML=item?.image_url
+    ?`<img src="${item.image_url}" /><div style="font-size:12px;color:var(--txt3);margin-top:4px;">Нажмите чтобы заменить</div>`
+    :`<i class="ti ti-photo" style="font-size:32px;color:var(--txt3);display:block;margin-bottom:8px;"></i><div style="font-size:13px;color:var(--txt3);">Нажмите чтобы загрузить фото</div>`;
+  document.getElementById('modal').classList.add('active');
+}
+
+function closeModal(){document.getElementById('modal').classList.remove('active');editingId=null;pendingPhotoFile=null;}
+
+function previewPhoto(input) {
+  const file=input.files[0];if(!file)return;
+  pendingPhotoFile=file;
+  const url=URL.createObjectURL(file);
+  document.getElementById('upload-preview').innerHTML=`<img src="${url}" /><div style="font-size:12px;color:var(--acc);margin-top:4px;">Фото выбрано</div>`;
+}
+
+async function saveItem() {
+  const name=document.getElementById('f-name').value.trim();
+  const price=parseInt(document.getElementById('f-price').value);
+  const cat=document.getElementById('f-cat').value;
+  if(!name||!price||!cat){alert('Заполните обязательные поля');return;}
+  const btn=document.getElementById('save-btn');
+  btn.disabled=true;btn.innerHTML='<div class="spinner"></div> Сохраняем...';
+
+  let image_url=editingId?items.find(i=>i.id===editingId)?.image_url:null;
+
+  if(pendingPhotoFile) {
+    const reader=new FileReader();
+    const b64=await new Promise(res=>{reader.onload=e=>res(e.target.result);reader.readAsDataURL(pendingPhotoFile);});
+    const uploadRes=await fetch(API+'/api/upload',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:b64,mimetype:pendingPhotoFile.type})});
+    const uploadData=await uploadRes.json();
+    if(uploadData.url) image_url=uploadData.url;
+  }
+
+  const payload={name,description:document.getElementById('f-desc').value.trim(),price,category:cat,cook_time:document.getElementById('f-time').value.trim()||'15 мин',image_url,available:true};
+
+  if(editingId) {
+    const existing=items.find(i=>i.id===editingId);
+    payload.available=existing?.available!==undefined?existing.available:true;
+    await fetch(API+'/api/menu/'+editingId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  } else {
+    await fetch(API+'/api/menu',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  }
+
+  closeModal();await loadMenu();
+  btn.disabled=false;btn.innerHTML='<i class="ti ti-check"></i> Сохранить';
+}
+
+function editItem(id){const item=items.find(i=>i.id===id);if(item)openModal(item);}
+async function toggleAvailable(id,val){await fetch(API+'/api/menu/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({...items.find(i=>i.id===id),available:val})});await loadMenu();}
+async function deleteItem(id){if(!confirm('Удалить блюдо?'))return;await fetch(API+'/api/menu/'+id,{method:'DELETE'});await loadMenu();}
+
+loadMenu();
+</script>
+</body>
+</html>
