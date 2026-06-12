@@ -110,7 +110,10 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgr
     <h1 style="font-size:38px;font-weight:500;text-align:center;line-height:1.1;margin-bottom:10px;" id="welcome-title">Добро<br>пожаловать</h1>
     <p style="font-size:14px;color:var(--txt2);text-align:center;margin-bottom:48px;line-height:1.6;" id="welcome-sub">Введите ваше имя чтобы открыть меню</p>
     <input class="name-input" id="guest-name" type="text" placeholder="Ваше имя" />
-    <button class="btn-green" onclick="enterMenu()" id="welcome-btn">Открыть меню <i class="ti ti-arrow-right"></i></button>
+    <button class="btn-green" onclick="enterMenu()" id="welcome-btn" style="margin-bottom:12px;">Открыть меню <i class="ti ti-arrow-right"></i></button>
+    <button class="btn-outline" onclick="findMyOrder()" style="background:rgba(255,255,255,0.04);">
+      <i class="ti ti-search"></i> Найти мой заказ
+    </button>
   </div>
 </div>
 
@@ -745,6 +748,50 @@ function showNewOrderNotif(order) {
 function closeNewOrderNotif() {
   document.getElementById('new-order-notification').style.display='none';
   if(notifTimeout) clearTimeout(notifTimeout);
+}
+
+async function findMyOrder() {
+  const n = document.getElementById('guest-name').value.trim();
+  if(!n) { 
+    document.getElementById('guest-name').style.borderColor='var(--green)';
+    document.getElementById('guest-name').focus();
+    return; 
+  }
+  
+  const btn = event.target;
+  btn.innerHTML = '<div class="spinner" style="border-top-color:var(--txt2);border-color:rgba(255,255,255,0.2);"></div> Ищем...';
+  btn.disabled = true;
+  
+  try {
+    // Ищем активный заказ по имени и номеру стола
+    const res = await fetch(API+'/api/orders/active');
+    const orders = await res.json();
+    const found = orders.find(o => 
+      (o.guest_name||'').toLowerCase() === n.toLowerCase() && 
+      o.table_number === TABLE_NUM &&
+      ['new','cooking','ready'].includes(o.status)
+    );
+    
+    if(found) {
+      guestName = found.guest_name;
+      currentOrderId = found.id;
+      sessionId = found.session_id;
+      document.getElementById('header-name').textContent = 'Привет, ' + guestName;
+      saveSession(false);
+      connectWS();
+      showScreen('status');
+      updateStatusUI(found.status);
+      if(found.session_id) loadTableOrders(found.session_id);
+    } else {
+      alert('Активный заказ не найден.
+Проверьте имя или сделайте новый заказ.');
+    }
+  } catch(e) {
+    alert('Ошибка поиска. Попробуйте ещё раз.');
+  }
+  
+  btn.innerHTML = '<i class="ti ti-search"></i> Найти мой заказ';
+  btn.disabled = false;
 }
 
 async function restoreSession() {
