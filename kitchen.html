@@ -22,7 +22,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgr
 .card.s-ready { border-left:3px solid #1a7a4a; }
 .card.s-done { border-left:3px solid #888;opacity:0.75; }
 .badge { display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:500; }
-.b-new{background:#FCEBEB;color:#A32D2D;}.b-cooking{background:#FAEEDA;color:#854F0B;}.b-ready{background:#d4ede0;color:#145e38;}.b-done{background:#f5f5f3;color:#888;}
+.b-new{background:#FCEBEB;color:#A32D2D;}.b-cooking{background:#FAEEDA;color:#854F0B;}.b-ready{background:#d4ede0;color:#145e38;}.b-done{background:#f5f5f3;color:#888;}.b-cancelled{background:#FCEBEB;color:#A32D2D;}
 .btn{padding:9px 14px;border-radius:var(--rm);border:1px solid var(--bdr2);background:var(--bg2);color:var(--txt2);font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:inherit;}
 .btn.prim{background:var(--acc);color:#fff;border-color:var(--acc);}
 .stat-card{background:var(--bg2);border-radius:var(--rm);padding:12px;text-align:center;}
@@ -90,6 +90,11 @@ async function dismiss(id) {
   await fetch(API+'/api/orders/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'done'})});
 }
 
+async function rejectOrder(id) {
+  if(!confirm('Отклонить заказ? Гость получит уведомление.')) return;
+  await fetch(API+'/api/orders/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'cancelled'})});
+}
+
 async function closeTable(sessionId) {
   if(!confirm('Закрыть стол? Следующие гости начнут с чистого листа.')) return;
   await fetch(API+'/api/sessions/'+sessionId+'/close',{method:'PUT'});
@@ -118,13 +123,17 @@ function renderCard(o, isHistory) {
 
   let btns='';
   if(!isHistory){
-    if(o.status==='new') btns+=`<button class="btn prim" onclick="advance('${o.id}')"><i class="ti ti-flame"></i> Начать готовить</button>`;
+    if(o.status==='new') {
+      btns+=`<button class="btn prim" onclick="advance('${o.id}')"><i class="ti ti-flame"></i> Начать готовить</button>`;
+      btns+=`<button class="btn" style="background:#FCEBEB;color:#A32D2D;border-color:#F7C1C1;" onclick="rejectOrder('${o.id}')"><i class="ti ti-x"></i> Отклонить</button>`;
+    }
     if(o.status==='cooking') btns+=`<button class="btn prim" onclick="advance('${o.id}')"><i class="ti ti-check"></i> Готово</button>`;
     if(o.status==='ready') btns+=`<button class="btn prim" onclick="dismiss('${o.id}')"><i class="ti ti-checks"></i> Выдан</button>`;
+    if(o.status==='cancelled') btns+=`<button class="btn" onclick="dismiss('${o.id}')"><i class="ti ti-x"></i> Убрать</button>`;
     if(isUpdated) btns+=`<span style="background:#fff3cd;color:#856404;border:1px solid #ffc107;border-radius:6px;padding:7px 12px;font-size:12px;font-weight:500;display:inline-flex;align-items:center;gap:4px;"><i class="ti ti-plus" style="font-size:13px;"></i> Доп. заказ</span>`;
   }
 
-  return `<div class="card s-${o.status}" style="${o.is_takeaway?'border-top:3px solid #185FA5;':''}">
+  return `<div class="card s-${o.status}" style="${hasTakeaway?'border-top:3px solid #185FA5;':''}">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
       <div style="display:flex;align-items:center;gap:10px;">
         <div style="background:var(--bg2);border:0.5px solid var(--bdr);border-radius:var(--rm);padding:8px 12px;text-align:center;min-width:52px;">
@@ -134,7 +143,7 @@ function renderCard(o, isHistory) {
         <div>
           <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
             <div style="font-size:15px;font-weight:500;">${o.guest_name_display||o.guest_name}</div>
-            ${o.is_takeaway?'<span style="background:#185FA5;color:#fff;border-radius:6px;padding:3px 10px;font-size:12px;font-weight:500;display:inline-flex;align-items:center;gap:4px;"><i class=\"ti ti-shopping-bag\" style=\"font-size:12px;\"></i> С собой — упаковать!</span>':''}
+            ${hasTakeaway?'<span style="background:#185FA5;color:#fff;border-radius:6px;padding:3px 10px;font-size:12px;font-weight:500;display:inline-flex;align-items:center;gap:4px;"><i class=\"ti ti-shopping-bag\" style=\"font-size:12px;\"></i> С собой — упаковать!</span>':''}
           </div>
           <div style="font-size:12px;color:var(--txt3);">${time} · ${orderTotal} ₽</div>
         </div>
@@ -210,6 +219,7 @@ async function loadOrders() {
     fetch(API+'/api/orders/active'),
     fetch(API+'/api/orders/history')
   ]);
+  // Also handle cancelled in realtime
   activeOrders=await activeRes.json();
   historyOrders=await historyRes.json();
   render();
@@ -239,9 +249,9 @@ function connectWS() {
         loadTableSessions();
       } else if(msg.type==='order_updated'){
         const updated=msg.order;
-        if(updated.status==='done'){
+        if(updated.status==='done'||updated.status==='cancelled'){
           activeOrders=activeOrders.filter(o=>o.id!==updated.id);
-          historyOrders.unshift(updated);
+          if(updated.status==='done') historyOrders.unshift(updated);
         } else {
           const idx=activeOrders.findIndex(o=>o.id===updated.id);
           if(idx!==-1) activeOrders[idx]=updated; else activeOrders.push(updated);

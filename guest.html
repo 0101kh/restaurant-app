@@ -88,6 +88,20 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgr
   </div>
 </div>
 
+<!-- Уведомление о новом заказе от другого гостя -->
+<div id="new-order-notification" style="display:none;position:fixed;bottom:20px;left:16px;right:16px;z-index:998;animation:fadeUp 0.4s ease;">
+  <div style="background:#1a1a1a;border:1px solid rgba(255,255,255,0.15);border-radius:16px;padding:16px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,0.5);">
+    <div style="width:44px;height:44px;border-radius:50%;background:var(--green-bg);border:1px solid var(--green-border);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <i class="ti ti-bell" style="font-size:20px;color:var(--green-light);"></i>
+    </div>
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:14px;font-weight:500;margin-bottom:2px;" id="notif-title">Новый заказ</div>
+      <div style="font-size:12px;color:var(--txt2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="notif-items"></div>
+    </div>
+    <button onclick="closeNewOrderNotif()" style="background:none;border:none;cursor:pointer;color:var(--txt3);font-size:18px;flex-shrink:0;">✕</button>
+  </div>
+</div>
+
 <!-- WELCOME -->
 <div id="screen-welcome" class="screen active">
   <div class="welcome-bg">
@@ -193,6 +207,9 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgr
         <button class="btn-outline" style="flex:1;" onclick="shareMenu()"><i class="ti ti-share"></i> Поделиться</button>
       </div>
       <button class="btn-outline" onclick="showSplit()"><i class="ti ti-receipt"></i> Оплата</button>
+      <button class="btn-outline" id="cancel-btn" onclick="cancelOrder()" style="display:none;border-color:rgba(226,75,74,0.4);color:#E24B4A;">
+        <i class="ti ti-x"></i> Отменить заказ
+      </button>
     </div>
   </div>
 </div>
@@ -284,6 +301,10 @@ function connectWS() {
       }
       if((msg.type==='order_updated'||msg.type==='new_order') && sessionId) {
         loadTableOrders(sessionId);
+        // Показываем уведомление если заказ от другого гостя
+        if(msg.type==='new_order' && msg.order.id!==currentOrderId && !IS_SHARED) {
+          showNewOrderNotif(msg.order);
+        }
       }
     } catch(err){}
   };
@@ -572,6 +593,12 @@ function shareMenu() {
 
 function updateStatusUI(status) {
   const s2=document.getElementById('step2'),s3=document.getElementById('step3');
+  const cancelBtn=document.getElementById('cancel-btn');
+  if(status==='new'){
+    if(cancelBtn) cancelBtn.style.display='flex';
+  } else {
+    if(cancelBtn) cancelBtn.style.display='none';
+  }
   if(status==='cooking'){
     s2.classList.add('done');
     document.getElementById('status-title').textContent='Готовится ваш заказ';
@@ -582,6 +609,26 @@ function updateStatusUI(status) {
     document.getElementById('status-sub').textContent='Уже несём к вашему столику!';
     showReadyNotification(false);
     clearSession();
+  }
+}
+
+async function cancelOrder() {
+  if(!currentOrderId) return;
+  if(!confirm('Отменить заказ? Это действие нельзя отменить.')) return;
+  try {
+    await fetch(API+'/api/orders/'+currentOrderId, {
+      method:'PUT', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({status:'cancelled'})
+    });
+    clearSession();
+    document.getElementById('status-title').textContent='Заказ отменён';
+    document.getElementById('status-sub').textContent='Ваш заказ был отменён';
+    document.getElementById('cancel-btn').style.display='none';
+    document.getElementById('status-buttons').innerHTML=`
+      <button class="btn-green" onclick="location.reload()"><i class="ti ti-refresh"></i> Сделать новый заказ</button>
+    `;
+  } catch(e) {
+    alert('Ошибка. Попробуйте ещё раз.');
   }
 }
 
@@ -626,8 +673,76 @@ function showSplitDetail(type) {
   const myOrder=tableOrders.find(o=>o.id===currentOrderId);
   const mine=myOrder?(myOrder.items||[]).reduce((s,i)=>s+i.price*(i.qty||1),0):0;
   const amt=type==='together'?total:mine;
-  document.getElementById('split-detail').innerHTML=`<div style="background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:20px;text-align:center;"><div style="font-size:13px;color:var(--txt2);margin-bottom:10px;">${type==='together'?'Общая сумма':'Ваша сумма'} к оплате</div><div style="font-size:38px;font-weight:500;color:var(--green-light);">${amt} ₽</div><div style="font-size:12px;color:var(--txt3);margin-top:10px;">Попросите официанта принести счёт</div></div>`;
+
+  let itemsHtml = '';
+  if(type==='together') {
+    // Все заказы всех гостей
+    tableOrders.forEach(o=>{
+      const oTotal=(o.items||[]).reduce((s,i)=>s+i.price*(i.qty||1),0);
+      const isMe=o.id===currentOrderId;
+      itemsHtml+=`<div style="margin-bottom:12px;">
+        <div style="font-size:12px;font-weight:500;color:${isMe?'var(--green-light)':'var(--txt2)'};margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--bdr);">
+          ${o.guest_name_display||o.guest_name}${isMe?' (вы)':''}${o.is_takeaway?' 🛍':''}
+        </div>
+        ${(o.items||[]).map(i=>`
+          <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--txt2);padding:3px 0;">
+            <span>${i.name}${i.qty>1?' × '+i.qty:''}</span>
+            <span style="flex-shrink:0;margin-left:8px;">${i.price*(i.qty||1)} ₽</span>
+          </div>`).join('')}
+        <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:500;margin-top:4px;padding-top:4px;border-top:1px dashed rgba(255,255,255,0.08);">
+          <span style="color:var(--txt3);">Итого</span><span>${oTotal} ₽</span>
+        </div>
+      </div>`;
+    });
+  } else {
+    // Только мой заказ
+    if(myOrder) {
+      (myOrder.items||[]).forEach(i=>{
+        itemsHtml+=`<div style="display:flex;justify-content:space-between;font-size:13px;color:var(--txt2);padding:5px 0;border-bottom:1px solid var(--bdr);">
+          <span>${i.name}${i.qty>1?' × '+i.qty:''}</span>
+          <span style="flex-shrink:0;margin-left:8px;">${i.price*(i.qty||1)} ₽</span>
+        </div>`;
+      });
+    }
+  }
+
+  document.getElementById('split-detail').innerHTML=`
+    <div style="background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:16px;">
+      <div style="font-size:13px;font-weight:500;color:var(--txt2);margin-bottom:12px;text-transform:uppercase;letter-spacing:1px;">
+        ${type==='together'?'Общий счёт':'Мой счёт'}
+      </div>
+      ${itemsHtml}
+      <div style="display:flex;justify-content:space-between;align-items:center;padding-top:14px;margin-top:8px;border-top:2px solid var(--green-border);">
+        <span style="font-size:15px;font-weight:500;">К оплате</span>
+        <span style="font-size:28px;font-weight:600;color:var(--green-light);">${amt} ₽</span>
+      </div>
+      <div style="font-size:12px;color:var(--txt3);margin-top:12px;text-align:center;">Попросите официанта принести счёт</div>
+    </div>`;
   document.getElementById('split-detail').style.display='block';
+}
+
+let notifTimeout = null;
+
+function showNewOrderNotif(order) {
+  const name = order.guest_name_display || order.guest_name;
+  const itemsList = (order.items||[]).map(i=>i.name+(i.qty>1?' ×'+i.qty:'')).join(', ');
+  const isTw = order.is_takeaway || (order.items||[]).some(i=>i.takeaway);
+  
+  document.getElementById('notif-title').textContent = name + (isTw?' заказал(а) с собой 🛍':' сделал(а) заказ');
+  document.getElementById('notif-items').textContent = itemsList;
+  
+  const notif = document.getElementById('new-order-notification');
+  notif.style.display = 'block';
+  
+  if(navigator.vibrate) navigator.vibrate(200);
+  
+  if(notifTimeout) clearTimeout(notifTimeout);
+  notifTimeout = setTimeout(()=>{ notif.style.display='none'; }, 5000);
+}
+
+function closeNewOrderNotif() {
+  document.getElementById('new-order-notification').style.display='none';
+  if(notifTimeout) clearTimeout(notifTimeout);
 }
 
 async function restoreSession() {
@@ -647,6 +762,7 @@ async function restoreSession() {
       await loadMenu();showScreen('menu');renderMenu('all');
     } else {
       showScreen('status');updateStatusUI(data.status);
+      if(data.status==='new') { const cb=document.getElementById('cancel-btn'); if(cb) cb.style.display='flex'; }
       if(data.session_id&&!IS_SHARED) loadTableOrders(data.session_id);
       if(IS_SHARED) {
         showSharedStatus(data, data.is_takeaway);
