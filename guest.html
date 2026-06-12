@@ -218,22 +218,56 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgr
   </div>
 </div>
 
-<!-- SPLIT -->
+<!-- SPLIT / PAYMENT -->
 <div id="screen-split" class="screen">
   <div style="background:var(--bg);min-height:100vh;padding:20px;">
     <button onclick="showScreen('status')" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;color:var(--txt2);font-size:14px;margin-bottom:16px;font-family:inherit;padding:0;"><i class="ti ti-arrow-left"></i> Назад</button>
-    <h2 style="font-size:24px;font-weight:500;margin-bottom:24px;">Способ оплаты</h2>
-    <div class="split-option" onclick="showSplitDetail('together')">
-      <div style="width:46px;height:46px;border-radius:50%;background:var(--green-bg);border:1px solid var(--green-border);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-users" style="font-size:20px;color:var(--green-light);"></i></div>
-      <div style="flex:1;"><div style="font-size:15px;font-weight:500;">Один счёт</div><div style="font-size:13px;color:var(--txt2);">Оплатить всё вместе</div></div>
-      <div style="font-size:18px;font-weight:500;color:var(--green-light);" id="split-together">0 ₽</div>
+    <h2 style="font-size:24px;font-weight:500;margin-bottom:6px;">Оплата</h2>
+    <p style="font-size:13px;color:var(--txt2);margin-bottom:20px;">Выберите способ и сумму оплаты</p>
+
+    <!-- Выбор суммы -->
+    <div style="display:flex;gap:10px;margin-bottom:20px;">
+      <div id="pay-together-btn" onclick="selectPayType('together')" style="flex:1;background:var(--green-bg);border:2px solid var(--green);border-radius:var(--r);padding:14px;text-align:center;cursor:pointer;">
+        <div style="font-size:12px;color:var(--txt2);margin-bottom:4px;">Весь стол</div>
+        <div style="font-size:20px;font-weight:600;color:var(--green-light);" id="split-together">0 ₽</div>
+      </div>
+      <div id="pay-mine-btn" onclick="selectPayType('separate')" style="flex:1;background:var(--bg2);border:2px solid var(--bdr2);border-radius:var(--r);padding:14px;text-align:center;cursor:pointer;">
+        <div style="font-size:12px;color:var(--txt2);margin-bottom:4px;">Только моё</div>
+        <div style="font-size:20px;font-weight:600;" id="split-mine">0 ₽</div>
+      </div>
     </div>
-    <div class="split-option" onclick="showSplitDetail('separate')">
-      <div style="width:46px;height:46px;border-radius:50%;background:var(--bg3);border:1px solid var(--bdr2);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="ti ti-user" style="font-size:20px;color:var(--txt2);"></i></div>
-      <div style="flex:1;"><div style="font-size:15px;font-weight:500;">Раздельно</div><div style="font-size:13px;color:var(--txt2);">Каждый платит за себя</div></div>
-      <div style="font-size:18px;font-weight:500;" id="split-mine">0 ₽</div>
+
+    <!-- Детали счёта -->
+    <div id="split-detail" style="margin-bottom:20px;"></div>
+
+    <!-- Способ оплаты -->
+    <div style="margin-bottom:20px;">
+      <div style="font-size:13px;color:var(--txt2);margin-bottom:10px;font-weight:500;">Способ оплаты:</div>
+      <div style="display:flex;gap:8px;">
+        <div id="pay-sbp" onclick="selectPayMethod('sbp')" style="flex:1;background:var(--bg2);border:2px solid var(--bdr2);border-radius:var(--rm);padding:12px;text-align:center;cursor:pointer;">
+          <div style="font-size:20px;margin-bottom:4px;">📱</div>
+          <div style="font-size:13px;font-weight:500;">СБП</div>
+        </div>
+        <div id="pay-card" onclick="selectPayMethod('card')" style="flex:1;background:var(--bg2);border:2px solid var(--bdr2);border-radius:var(--rm);padding:12px;text-align:center;cursor:pointer;">
+          <div style="font-size:20px;margin-bottom:4px;">💳</div>
+          <div style="font-size:13px;font-weight:500;">Карта</div>
+        </div>
+        <div id="pay-cash" onclick="selectPayMethod('cash')" style="flex:1;background:var(--bg2);border:2px solid var(--bdr2);border-radius:var(--rm);padding:12px;text-align:center;cursor:pointer;">
+          <div style="font-size:20px;margin-bottom:4px;">💵</div>
+          <div style="font-size:13px;font-weight:500;">Наличные</div>
+        </div>
+      </div>
     </div>
-    <div id="split-detail"></div>
+
+    <!-- Кнопка вызова официанта -->
+    <button class="btn-green" id="pay-request-btn" onclick="requestPayment()" style="margin-bottom:12px;">
+      <i class="ti ti-bell"></i> Вызвать официанта для оплаты
+    </button>
+    <div id="pay-success" style="display:none;background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--r);padding:16px;text-align:center;">
+      <div style="font-size:24px;margin-bottom:8px;">✅</div>
+      <div style="font-size:15px;font-weight:500;color:var(--green-light);">Официант уведомлён!</div>
+      <div style="font-size:13px;color:var(--txt2);margin-top:4px;">Скоро подойдёт к вашему столику</div>
+    </div>
   </div>
 </div>
 
@@ -704,13 +738,80 @@ function renderBill() {
   document.getElementById('table-total').textContent=total+' ₽';
 }
 
+let selectedPayType = 'together';
+let selectedPayMethod = 'cash';
+
+function selectPayType(type) {
+  selectedPayType = type;
+  const togetherBtn = document.getElementById('pay-together-btn');
+  const mineBtn = document.getElementById('pay-mine-btn');
+  if(type==='together') {
+    togetherBtn.style.background='var(--green-bg)';togetherBtn.style.borderColor='var(--green)';
+    mineBtn.style.background='var(--bg2)';mineBtn.style.borderColor='var(--bdr2)';
+  } else {
+    mineBtn.style.background='var(--green-bg)';mineBtn.style.borderColor='var(--green)';
+    togetherBtn.style.background='var(--bg2)';togetherBtn.style.borderColor='var(--bdr2)';
+  }
+  showSplitDetail(type);
+}
+
+function selectPayMethod(method) {
+  selectedPayMethod = method;
+  ['sbp','card','cash'].forEach(m => {
+    const el = document.getElementById('pay-'+m);
+    if(el) {
+      el.style.background = m===method ? 'var(--green-bg)' : 'var(--bg2)';
+      el.style.borderColor = m===method ? 'var(--green)' : 'var(--bdr2)';
+    }
+  });
+}
+
+async function requestPayment() {
+  if(!sessionId) { alert('Сначала сделайте заказ'); return; }
+  const total = selectedPayType==='together'
+    ? tableOrders.reduce((s,o)=>(o.items||[]).reduce((ss,i)=>ss+i.price*(i.qty||1),0)+s,0)
+    : tableOrders.find(o=>o.id===currentOrderId) ? (tableOrders.find(o=>o.id===currentOrderId).items||[]).reduce((s,i)=>s+i.price*(i.qty||1),0) : 0;
+  
+  const methodNames = {sbp:'СБП',card:'Карта',cash:'Наличные'};
+  const btn = document.getElementById('pay-request-btn');
+  btn.disabled=true;
+  btn.innerHTML='<div class="spinner"></div> Отправляем...';
+  
+  try {
+    await fetch(API+'/api/payment/request', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        session_id: sessionId,
+        guest_name: guestName,
+        table_number: TABLE_NUM,
+        total,
+        method: methodNames[selectedPayMethod]
+      })
+    });
+    btn.style.display='none';
+    document.getElementById('pay-success').style.display='block';
+    if(navigator.vibrate) navigator.vibrate(200);
+  } catch(e) {
+    btn.disabled=false;
+    btn.innerHTML='<i class="ti ti-bell"></i> Вызвать официанта для оплаты';
+    alert('Ошибка. Попробуйте ещё раз.');
+  }
+}
+
 function showSplit() {
   const total=tableOrders.reduce((s,o)=>(o.items||[]).reduce((ss,i)=>ss+i.price*(i.qty||1),0)+s,0);
   const myOrder=tableOrders.find(o=>o.id===currentOrderId);
   const mine=myOrder?(myOrder.items||[]).reduce((s,i)=>s+i.price*(i.qty||1),0):0;
   document.getElementById('split-together').textContent=total+' ₽';
   document.getElementById('split-mine').textContent=mine+' ₽';
-  document.getElementById('split-detail').style.display='none';
+  // Reset payment UI
+  document.getElementById('pay-success').style.display='none';
+  const btn=document.getElementById('pay-request-btn');
+  btn.style.display='flex';btn.disabled=false;
+  btn.innerHTML='<i class="ti ti-bell"></i> Вызвать официанта для оплаты';
+  selectPayType('together');
+  selectPayMethod('cash');
+  showSplitDetail('together');
   showScreen('split');
 }
 

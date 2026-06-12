@@ -34,6 +34,24 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgr
 </style>
 </head>
 <body>
+<!-- Уведомление об оплате -->
+<div id="payment-notification" style="display:none;position:fixed;top:20px;left:16px;right:16px;z-index:999;animation:slideDown 0.4s ease;">
+  <div style="background:#fff;border:2px solid #1a7a4a;border-radius:16px;padding:16px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,0.15);">
+    <div style="width:48px;height:48px;border-radius:50%;background:#d4ede0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <i class="ti ti-credit-card" style="font-size:22px;color:#1a7a4a;"></i>
+    </div>
+    <div style="flex:1;">
+      <div style="font-size:15px;font-weight:600;margin-bottom:2px;" id="pay-notif-title">Запрос оплаты</div>
+      <div style="font-size:13px;color:#5f5e5a;" id="pay-notif-detail"></div>
+    </div>
+    <button onclick="confirmPayment()" style="background:#1a7a4a;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;white-space:nowrap;">
+      ✓ Принято
+    </button>
+    <button onclick="closePayNotif()" style="background:none;border:none;cursor:pointer;color:#888;font-size:18px;flex-shrink:0;">✕</button>
+  </div>
+</div>
+@keyframes slideDown { from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)} }
+
 <div class="wrap">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
     <div>
@@ -260,10 +278,51 @@ function connectWS() {
         loadTableSessions();
       } else if(msg.type==='session_closed'){
         loadTableSessions();
+      } else if(msg.type==='payment_requested'){
+        showPaymentNotif(msg);
       }
       if(currentTab==='tables') renderTables(); else render();
     } catch(err){}
   };
+}
+
+let currentPaymentSession = null;
+
+function showPaymentNotif(data) {
+  currentPaymentSession = data.session_id;
+  const methodIcons = {'СБП':'📱','Карта':'💳','Наличные':'💵'};
+  const icon = methodIcons[data.method] || '💰';
+  document.getElementById('pay-notif-title').textContent = icon+' '+data.guest_name+' · Стол '+data.table_number+' · '+data.total+' ₽';
+  document.getElementById('pay-notif-detail').textContent = 'Способ оплаты: '+data.method;
+  document.getElementById('payment-notification').style.display='block';
+  // Звук уведомления
+  if(typeof AudioContext !== 'undefined' || typeof webkitAudioContext !== 'undefined') {
+    try {
+      const ctx = new (window.AudioContext||window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);gain.connect(ctx.destination);
+      osc.frequency.value=880;osc.type='sine';
+      gain.gain.setValueAtTime(0,ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.3,ctx.currentTime+0.05);
+      gain.gain.linearRampToValueAtTime(0,ctx.currentTime+0.4);
+      osc.start(ctx.currentTime);osc.stop(ctx.currentTime+0.45);
+    } catch(e){}
+  }
+}
+
+async function confirmPayment() {
+  if(!currentPaymentSession) return;
+  await fetch('https://restaurant-api-production-4fdd.up.railway.app/api/payment/confirm',{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({session_id:currentPaymentSession})
+  });
+  closePayNotif();
+}
+
+function closePayNotif() {
+  document.getElementById('payment-notification').style.display='none';
+  currentPaymentSession=null;
 }
 
 function tick(){document.getElementById('clk').textContent=new Date().toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'});}
