@@ -288,10 +288,23 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgr
     <button class="btn-green" id="pay-request-btn" onclick="requestPayment()" style="margin-bottom:12px;">
       <i class="ti ti-bell"></i> Вызвать официанта для оплаты
     </button>
-    <div id="pay-success" style="display:none;background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--r);padding:16px;text-align:center;">
-      <div style="font-size:24px;margin-bottom:8px;">✅</div>
-      <div style="font-size:15px;font-weight:500;color:var(--green-light);">Официант уведомлён!</div>
-      <div style="font-size:13px;color:var(--txt2);margin-top:4px;">Скоро подойдёт к вашему столику</div>
+    <div id="pay-success" style="display:none;background:var(--green-bg);border:1px solid var(--green-border);border-radius:var(--r);padding:16px;">
+      <div style="text-align:center;margin-bottom:14px;">
+        <div style="font-size:24px;margin-bottom:6px;">✅</div>
+        <div style="font-size:15px;font-weight:500;color:var(--green-light);">Официант уведомлён!</div>
+        <div style="font-size:13px;color:var(--txt2);margin-top:4px;">Прикрепите скриншот чека — и можете уходить</div>
+      </div>
+      <!-- Загрузка чека -->
+      <div id="receipt-upload-block">
+        <input type="file" id="receipt-input" accept="image/*" style="display:none;" onchange="uploadReceipt(this)" />
+        <button onclick="document.getElementById('receipt-input').click()" style="width:100%;padding:12px;background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--rm);color:var(--txt2);font-size:14px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;">
+          <i class="ti ti-camera"></i> Прикрепить скриншот чека
+        </button>
+      </div>
+      <div id="receipt-done" style="display:none;text-align:center;padding:10px 0;">
+        <div style="font-size:13px;color:var(--green-light);font-weight:500;"><i class="ti ti-check"></i> Чек прикреплён — можете уходить!</div>
+        <div style="font-size:12px;color:var(--txt3);margin-top:4px;">Официант проверит и закроет стол</div>
+      </div>
     </div>
   </div>
 </div>
@@ -962,6 +975,63 @@ async function requestPayment() {
     btn.disabled=false;
     btn.innerHTML='<i class="ti ti-bell"></i> Вызвать официанта для оплаты';
     alert('Ошибка. Попробуйте ещё раз.');
+  }
+}
+
+async function uploadReceipt(input) {
+  const file = input.files[0];
+  if(!file) return;
+  
+  const btn = document.querySelector('#receipt-upload-block button');
+  if(btn) { btn.innerHTML = '<div class="spinner"></div> Загружаем...'; btn.disabled = true; }
+  
+  try {
+    // Загружаем в GitHub
+    const GITHUB_TOKEN = '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';
+    const reader = new FileReader();
+    const b64 = await new Promise(res => { reader.onload = e => res(e.target.result.split(',')[1]); reader.readAsDataURL(file); });
+    const fname = 'receipt_' + Date.now() + '.' + file.name.split('.').pop();
+    
+    const uploadRes = await fetch(`https://api.github.com/repos/0101kh/restaurant-app/contents/images/${fname}`, {
+      method: 'PUT',
+      headers: { 'Authorization': 'token ' + GITHUB_TOKEN, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Receipt ' + fname, content: b64 })
+    });
+    
+    if(!uploadRes.ok) throw new Error('Upload failed');
+    
+    const receiptUrl = `https://0101kh.github.io/restaurant-app/images/${fname}`;
+    
+    // Сохраняем URL чека в заказе
+    if(currentOrderId) {
+      await fetch(API + '/api/orders/' + currentOrderId, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ payment_receipt: receiptUrl })
+      });
+      
+      // Уведомляем официанта через WebSocket
+      await fetch(API + '/api/payment/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: sessionId,
+          guest_name: guestName,
+          table_number: TABLE_NUM,
+          total: 0,
+          method: 'Чек прикреплён',
+          receipt_url: receiptUrl
+        })
+      });
+    }
+    
+    document.getElementById('receipt-upload-block').style.display = 'none';
+    document.getElementById('receipt-done').style.display = 'block';
+    
+  } catch(e) {
+    console.error(e);
+    if(btn) { btn.innerHTML = '<i class="ti ti-camera"></i> Попробовать снова'; btn.disabled = false; }
+    alert('Ошибка загрузки. Попробуйте снова.');
   }
 }
 
