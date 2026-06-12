@@ -6,48 +6,41 @@
 <title>Меню</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.3.0/dist/tabler-icons.min.css">
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+* { box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent; }
 :root {
-  --bg: #0e0e0e; --bg2: #1a1a1a; --bg3: #222; --bg4: #2a2a2a;
-  --green: #1a7a4a; --green-light: #22a060; --green-dark: #145e38;
-  --green-bg: rgba(26,122,74,0.1); --green-border: rgba(26,122,74,0.25);
-  --txt: #f0ece4; --txt2: #a09880; --txt3: #5a5548;
-  --bdr: rgba(255,255,255,0.08); --bdr2: rgba(255,255,255,0.14);
-  --r: 16px; --rm: 10px;
+  --bg:#0e0e0e;--bg2:#1a1a1a;--bg3:#222;
+  --green:#1a7a4a;--green-light:#22a060;--green-dark:#145e38;
+  --green-bg:rgba(26,122,74,0.1);--green-border:rgba(26,122,74,0.25);
+  --blue:#185FA5;--blue-bg:rgba(24,95,165,0.1);--blue-border:rgba(24,95,165,0.3);
+  --txt:#f0ece4;--txt2:#a09880;--txt3:#5a5548;
+  --bdr:rgba(255,255,255,0.08);--bdr2:rgba(255,255,255,0.14);
+  --r:16px;--rm:10px;
 }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); min-height: 100vh; color: var(--txt); overflow-x: hidden; }
-.screen { display: none; }
-.screen.active { display: block; animation: fadeUp 0.3s ease; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);min-height:100vh;color:var(--txt);overflow-x:hidden; }
+.screen { display:none; }
+.screen.active { display:block;animation:fadeUp 0.3s ease; }
 @keyframes fadeUp { from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)} }
 @keyframes spin { to{transform:rotate(360deg)} }
+@keyframes pulse2 { 0%,100%{transform:scale(1)}50%{transform:scale(1.05)} }
 
-/* WELCOME */
-.welcome-bg { min-height:100vh; background:linear-gradient(160deg,#0a1f12 0%,#0e0e0e 60%); display:flex; flex-direction:column; justify-content:center; padding:48px 28px; position:relative; overflow:hidden; }
-.welcome-bg::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(26,122,74,0.15) 0%,transparent 70%); pointer-events:none; }
-.logo-mark { width:72px;height:72px;border-radius:50%;border:1px solid var(--green-border);display:flex;align-items:center;justify-content:center;margin:0 auto 32px;background:var(--green-bg);position:relative; }
-.logo-mark::before { content:'';position:absolute;inset:-6px;border-radius:50%;border:1px solid rgba(26,122,74,0.1); }
-.welcome-title { font-size:42px;font-weight:500;text-align:center;line-height:1.1;color:var(--txt);margin-bottom:10px; }
-.welcome-sub { font-size:14px;color:var(--txt2);text-align:center;margin-bottom:48px;line-height:1.6; }
+.welcome-bg { min-height:100vh;background:linear-gradient(160deg,#0a1f12 0%,#0e0e0e 60%);display:flex;flex-direction:column;justify-content:center;padding:48px 28px;position:relative;overflow:hidden; }
+.welcome-bg::before { content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(26,122,74,0.15) 0%,transparent 70%);pointer-events:none; }
+.logo-mark { width:72px;height:72px;border-radius:50%;border:1px solid var(--green-border);display:flex;align-items:center;justify-content:center;margin:0 auto 32px;background:var(--green-bg); }
 .table-chip { display:flex;align-items:center;justify-content:center;gap:6px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:20px;padding:6px 14px;font-size:12px;color:var(--green-light);letter-spacing:1.5px;text-transform:uppercase;margin:0 auto 40px;width:fit-content; }
 .name-input { width:100%;padding:16px 20px;font-size:16px;border:1px solid var(--bdr2);border-radius:var(--r);background:var(--bg2);color:var(--txt);outline:none;font-family:inherit;transition:border-color 0.2s;margin-bottom:14px; }
 .name-input::placeholder { color:var(--txt3); }
 .name-input:focus { border-color:var(--green); }
-.btn-green { width:100%;padding:16px;border:none;border-radius:var(--r);background:linear-gradient(135deg,var(--green) 0%,var(--green-dark) 100%);color:#fff;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity 0.2s; }
-.btn-green:active { opacity:0.85; }
+.btn-green { width:100%;padding:16px;border:none;border-radius:var(--r);background:linear-gradient(135deg,var(--green) 0%,var(--green-dark) 100%);color:#fff;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px; }
 .btn-green:disabled { opacity:0.5; }
+.btn-outline { width:100%;padding:14px;background:transparent;border:1px solid var(--bdr2);border-radius:var(--r);color:var(--txt2);font-size:14px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px; }
 
-/* MENU HEADER */
 .menu-header { padding:16px 20px 0;background:var(--bg);border-bottom:1px solid var(--bdr);position:sticky;top:0;z-index:20; }
-.header-top { display:flex;justify-content:space-between;align-items:center;margin-bottom:12px; }
-.header-name { font-size:20px;font-weight:500; }
-.header-table { font-size:11px;color:var(--txt2);letter-spacing:1px;text-transform:uppercase; }
 .cart-btn { position:relative;background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--rm);padding:10px 16px;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--txt);font-size:14px;font-family:inherit; }
 .cart-badge { display:none;position:absolute;top:-7px;right:-7px;background:var(--green);color:#fff;border-radius:50%;width:20px;height:20px;font-size:11px;font-weight:500;align-items:center;justify-content:center; }
 .cats { display:flex;gap:8px;overflow-x:auto;padding-bottom:14px;scrollbar-width:none; }
-.cat-pill { flex-shrink:0;padding:8px 18px;border-radius:24px;border:1px solid var(--bdr2);background:transparent;color:var(--txt2);font-size:13px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all 0.2s; }
+.cat-pill { flex-shrink:0;padding:8px 18px;border-radius:24px;border:1px solid var(--bdr2);background:transparent;color:var(--txt2);font-size:13px;cursor:pointer;font-family:inherit;white-space:nowrap; }
 .cat-pill.active { background:var(--green);color:#fff;border-color:var(--green);font-weight:500; }
 
-/* DISH CARDS */
 .menu-grid { padding:16px 20px 100px;display:flex;flex-direction:column;gap:14px; }
 .dish-card { background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden; }
 .dish-img { width:100%;height:180px;object-fit:cover;display:block; }
@@ -57,57 +50,63 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .dish-desc { font-size:13px;color:var(--txt2);line-height:1.5;margin-bottom:12px; }
 .dish-footer { display:flex;justify-content:space-between;align-items:center; }
 .dish-price { font-size:18px;font-weight:500;color:var(--green-light); }
-.dish-time { font-size:12px;color:var(--txt3);display:flex;align-items:center;gap:4px; }
 .add-dish-btn { padding:9px 18px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:24px;color:var(--green-light);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit; }
 .qty-wrap { display:flex;align-items:center;gap:12px; }
 .qty-btn { width:34px;height:34px;border-radius:50%;border:1px solid var(--bdr2);background:var(--bg3);cursor:pointer;font-size:18px;color:var(--txt);display:flex;align-items:center;justify-content:center;font-family:inherit; }
 .qty-btn.plus { background:var(--green);border-color:var(--green);color:#fff; }
-.qty-num { font-size:16px;font-weight:500;min-width:20px;text-align:center; }
 
-/* CART */
 .cart-item { display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--bdr); }
-.btn-outline { width:100%;padding:14px;background:transparent;border:1px solid var(--bdr2);border-radius:var(--r);color:var(--txt2);font-size:14px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px; }
-
-/* STATUS */
-.status-hero { padding:40px 24px 28px;text-align:center;background:linear-gradient(180deg,#0a1f12 0%,var(--bg) 100%); }
-.status-icon { width:72px;height:72px;border-radius:50%;background:var(--green-bg);border:1px solid var(--green-border);display:flex;align-items:center;justify-content:center;margin:0 auto 20px; }
-.status-title { font-size:28px;font-weight:500;margin-bottom:8px; }
-.status-sub { font-size:14px;color:var(--txt2); }
+.bill-card { background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:16px;margin:0 20px 16px; }
+.bill-row { display:flex;justify-content:space-between;font-size:13px;color:var(--txt2);padding:6px 0; }
 .step-row { display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:var(--rm);background:var(--bg2);transition:all 0.3s; }
 .step-row.done { background:var(--green-bg);border:1px solid var(--green-border); }
 .step-dot { width:34px;height:34px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--txt3);font-size:15px;transition:all 0.3s; }
 .step-row.done .step-dot { background:var(--green);color:#fff; }
 .step-label { font-size:14px;font-weight:500;color:var(--txt2); }
 .step-row.done .step-label { color:var(--green-light); }
-.step-sub { font-size:12px;color:var(--txt3);margin-top:2px; }
 .step-line { width:2px;height:14px;background:var(--bdr);margin-left:32px; }
-.bill-card { background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:16px;margin:0 20px 16px; }
-.bill-row { display:flex;justify-content:space-between;font-size:13px;color:var(--txt2);padding:6px 0; }
 .split-option { background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;margin-bottom:12px; }
+
+/* Уведомление о готовности */
+.ready-notification { display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;padding:24px; }
+.ready-notification.show { display:flex;animation:fadeUp 0.4s ease; }
+.ready-card { background:linear-gradient(135deg,#0a1f12,#1a3a20);border:1px solid var(--green-border);border-radius:24px;padding:40px 24px;text-align:center;width:100%;max-width:340px; }
+.ready-icon { width:80px;height:80px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;animation:pulse2 1.5s infinite; }
+
 .spinner { width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite; }
 </style>
 </head>
 <body>
 
+<!-- Уведомление о готовности -->
+<div class="ready-notification" id="ready-notification">
+  <div class="ready-card">
+    <div class="ready-icon"><i class="ti ti-check" style="font-size:36px;color:#fff;"></i></div>
+    <h2 style="font-size:26px;font-weight:600;margin-bottom:10px;" id="ready-title">Заказ готов! 🎉</h2>
+    <p style="font-size:15px;color:var(--txt2);margin-bottom:28px;" id="ready-subtitle">Уже несём к вашему столику</p>
+    <button class="btn-green" onclick="closeReadyNotification()" style="max-width:200px;margin:0 auto;">Отлично!</button>
+  </div>
+</div>
+
 <!-- WELCOME -->
 <div id="screen-welcome" class="screen active">
   <div class="welcome-bg">
     <div class="logo-mark"><i class="ti ti-tools-kitchen-2" style="font-size:28px;color:var(--green-light);"></i></div>
-    <div class="table-chip"><i class="ti ti-armchair" style="font-size:12px;"></i> Стол № <span id="table-welcome">1</span></div>
-    <h1 class="welcome-title">Добро<br>пожаловать</h1>
-    <p class="welcome-sub">Введите ваше имя чтобы<br>открыть меню и сделать заказ</p>
+    <div class="table-chip" id="welcome-chip"><i class="ti ti-armchair" style="font-size:12px;"></i> Стол № <span id="table-welcome">1</span></div>
+    <h1 style="font-size:38px;font-weight:500;text-align:center;line-height:1.1;margin-bottom:10px;" id="welcome-title">Добро<br>пожаловать</h1>
+    <p style="font-size:14px;color:var(--txt2);text-align:center;margin-bottom:48px;line-height:1.6;" id="welcome-sub">Введите ваше имя чтобы открыть меню</p>
     <input class="name-input" id="guest-name" type="text" placeholder="Ваше имя" />
-    <button class="btn-green" onclick="enterMenu()">Открыть меню <i class="ti ti-arrow-right"></i></button>
+    <button class="btn-green" onclick="enterMenu()" id="welcome-btn">Открыть меню <i class="ti ti-arrow-right"></i></button>
   </div>
 </div>
 
 <!-- MENU -->
 <div id="screen-menu" class="screen">
   <div class="menu-header">
-    <div class="header-top">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
       <div>
-        <div class="header-table">Стол № <span id="table-menu">1</span></div>
-        <div class="header-name" id="header-name">Привет!</div>
+        <div style="font-size:11px;color:var(--txt2);letter-spacing:1px;text-transform:uppercase;" id="menu-mode-label">Стол № <span id="table-menu">1</span></div>
+        <div style="font-size:20px;font-weight:500;" id="header-name">Привет!</div>
       </div>
       <button class="cart-btn" onclick="showCart()">
         <i class="ti ti-shopping-cart" style="font-size:17px;color:var(--green-light);"></i>
@@ -123,6 +122,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
       <button class="cat-pill" onclick="filterCat(this,'drinks')">🥤 Напитки</button>
     </div>
   </div>
+  <div id="menu-banner" style="display:none;margin:12px 20px 0;padding:12px 16px;border-radius:12px;font-size:13px;display:none;align-items:center;gap:10px;"></div>
   <div class="menu-grid" id="menu-list"></div>
 </div>
 
@@ -147,26 +147,46 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 <!-- STATUS -->
 <div id="screen-status" class="screen">
   <div style="background:var(--bg);min-height:100vh;">
-    <div class="status-hero">
-      <div class="status-icon"><i class="ti ti-check" style="font-size:28px;color:var(--green-light);"></i></div>
-      <h2 class="status-title" id="status-title">Заказ принят!</h2>
-      <p class="status-sub" id="status-sub">Кухня уже получила ваш заказ</p>
+    <div style="padding:40px 24px 28px;text-align:center;background:linear-gradient(180deg,#0a1f12 0%,var(--bg) 100%);">
+      <div style="width:72px;height:72px;border-radius:50%;background:var(--green-bg);border:1px solid var(--green-border);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+        <i class="ti ti-check" style="font-size:28px;color:var(--green-light);"></i>
+      </div>
+      <h2 style="font-size:28px;font-weight:500;margin-bottom:8px;" id="status-title">Заказ принят!</h2>
+      <p style="font-size:14px;color:var(--txt2);" id="status-sub">Кухня уже получила ваш заказ</p>
     </div>
+
+    <!-- Статусы -->
     <div style="padding:0 20px 16px;">
       <div style="display:flex;flex-direction:column;">
-        <div class="step-row done" id="step1"><div class="step-dot"><i class="ti ti-check"></i></div><div><div class="step-label">Заказ принят</div><div class="step-sub">Кухня получила ваш заказ</div></div></div>
+        <div class="step-row done" id="step1"><div class="step-dot"><i class="ti ti-check"></i></div><div><div class="step-label">Заказ принят</div><div style="font-size:12px;color:var(--txt3);">Кухня получила ваш заказ</div></div></div>
         <div class="step-line"></div>
-        <div class="step-row" id="step2"><div class="step-dot"><i class="ti ti-tools-kitchen-2"></i></div><div><div class="step-label">Готовится</div><div class="step-sub">Шеф работает над заказом</div></div></div>
+        <div class="step-row" id="step2"><div class="step-dot"><i class="ti ti-tools-kitchen-2"></i></div><div><div class="step-label">Готовится</div><div style="font-size:12px;color:var(--txt3);">Шеф работает над заказом</div></div></div>
         <div class="step-line"></div>
-        <div class="step-row" id="step3"><div class="step-dot"><i class="ti ti-bell"></i></div><div><div class="step-label">Готово</div><div class="step-sub">Несём к вашему столику</div></div></div>
+        <div class="step-row" id="step3"><div class="step-dot"><i class="ti ti-bell"></i></div><div><div class="step-label" id="step3-label">Готово</div><div style="font-size:12px;color:var(--txt3);" id="step3-sub">Несём к вашему столику</div></div></div>
       </div>
     </div>
-    <div class="bill-card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><div style="font-size:15px;font-weight:500;">Счёт стола</div><div style="font-size:12px;color:var(--txt2);" id="guests-count">1 гость</div></div>
-      <div id="table-orders-list"></div>
-      <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;margin-top:4px;border-top:1px solid var(--bdr);"><span style="font-size:14px;color:var(--txt2);">Общий итог</span><span style="font-size:20px;font-weight:500;color:var(--green-light);" id="table-total">0 ₽</span></div>
+
+    <!-- Мой заказ -->
+    <div class="bill-card" id="my-order-card" style="display:none;">
+      <div style="font-size:13px;font-weight:500;color:var(--txt2);margin-bottom:8px;">Мой заказ</div>
+      <div id="my-order-list"></div>
     </div>
-    <div style="padding:0 20px 32px;display:flex;flex-direction:column;gap:10px;">
+
+    <!-- Счёт стола (только для основного гостя) -->
+    <div class="bill-card" id="table-bill-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div style="font-size:15px;font-weight:500;">Счёт стола</div>
+        <div style="font-size:12px;color:var(--txt2);" id="guests-count">1 гость</div>
+      </div>
+      <div id="table-orders-list"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;margin-top:4px;border-top:1px solid var(--bdr);">
+        <span style="font-size:14px;color:var(--txt2);">Общий итог</span>
+        <span style="font-size:20px;font-weight:500;color:var(--green-light);" id="table-total">0 ₽</span>
+      </div>
+    </div>
+
+    <!-- Кнопки -->
+    <div style="padding:0 20px 32px;display:flex;flex-direction:column;gap:10px;" id="status-buttons">
       <button class="btn-green" onclick="addMoreItems()"><i class="ti ti-plus"></i> Добавить к заказу</button>
       <div style="display:flex;gap:10px;">
         <button class="btn-outline" style="flex:1;" onclick="orderTakeaway()"><i class="ti ti-shopping-bag"></i> С собой</button>
@@ -202,117 +222,138 @@ const WS_URL = 'wss://restaurant-api-production-4fdd.up.railway.app';
 
 const params = new URLSearchParams(window.location.search);
 const TABLE_NUM = parseInt(params.get('table')) || 1;
-const SHARED_SESSION = params.get('session') || null;
+const SHARED_SESSION = params.get('session') || null; // сессия из ссылки
+const IS_SHARED = !!SHARED_SESSION; // пришёл по ссылке
+
 document.getElementById('table-welcome').textContent = TABLE_NUM;
 document.getElementById('table-menu').textContent = TABLE_NUM;
 
-const SESSION_KEY = 'rst_v2_t' + TABLE_NUM;
+// Если пришёл по ссылке — меняем текст приветствия
+if(IS_SHARED) {
+  document.getElementById('welcome-title').innerHTML = 'Выбери<br>что хочешь!';
+  document.getElementById('welcome-sub').textContent = 'Твой заказ добавится к счёту стола';
+  document.getElementById('welcome-chip').innerHTML = '<i class="ti ti-share" style="font-size:12px;"></i> Совместный заказ';
+  document.getElementById('welcome-btn').innerHTML = 'Открыть меню <i class="ti ti-arrow-right"></i>';
+}
+
+const SESSION_KEY = 'rst_v3_t' + TABLE_NUM + (IS_SHARED ? '_s' : '');
 
 let MENU = [];
 let cart = {};
 let guestName = '';
 let currentCat = 'all';
 let currentOrderId = null;
-let sessionId = null;
+let sessionId = SHARED_SESSION || null;
 let tableOrders = [];
 let ws = null;
 let isAddingMore = false;
+let isTakeaway = false;
 
 function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('screen-' + id).classList.add('active');
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
   window.scrollTo(0,0);
 }
 
 function saveSession(adding=false) {
-  localStorage.setItem(SESSION_KEY, JSON.stringify({ guestName, currentOrderId, sessionId, isAddingMore: adding }));
+  localStorage.setItem(SESSION_KEY, JSON.stringify({guestName,currentOrderId,sessionId,isAddingMore:adding,isTakeaway}));
 }
 function clearSession() { localStorage.removeItem(SESSION_KEY); }
 
 async function loadMenu() {
-  const cached = localStorage.getItem('menu_cache_v2');
-  if(cached) { try { MENU = JSON.parse(cached); } catch(e) {} }
+  const cached = localStorage.getItem('menu_cache_v3');
+  if(cached) { try { MENU=JSON.parse(cached); } catch(e){} }
   try {
-    const res = await fetch(API + '/api/menu');
+    const res = await fetch(API+'/api/menu');
     const data = await res.json();
-    if(data && data.length) {
-      MENU = data.map(item => ({ id: item.id, cat: item.category, name: item.name, desc: item.description||'', price: item.price, time: item.cook_time||'15 мин', image: item.image_url||null }));
-      localStorage.setItem('menu_cache_v2', JSON.stringify(MENU));
+    if(data&&data.length) {
+      MENU=data.map(item=>({id:item.id,cat:item.category,name:item.name,desc:item.description||'',price:item.price,time:item.cook_time||'15 мин',image:item.image_url||null}));
+      localStorage.setItem('menu_cache_v3',JSON.stringify(MENU));
     }
-  } catch(e) { console.log('Using cached menu'); }
+  } catch(e){}
 }
 
 function connectWS() {
+  if(ws) return;
   ws = new WebSocket(WS_URL);
   ws.onmessage = (e) => {
     try {
       const msg = JSON.parse(e.data);
-      if(msg.type === 'order_updated' && msg.order.id === currentOrderId) {
+      if(msg.type==='order_updated' && msg.order.id===currentOrderId) {
         updateStatusUI(msg.order.status);
       }
-      if((msg.type === 'order_updated' || msg.type === 'new_order') && sessionId) {
+      if((msg.type==='order_updated'||msg.type==='new_order') && sessionId) {
         loadTableOrders(sessionId);
       }
-    } catch(err) {}
+    } catch(err){}
   };
-  ws.onclose = () => setTimeout(connectWS, 3000);
+  ws.onclose = () => { ws=null; setTimeout(connectWS,3000); };
 }
 
 async function enterMenu() {
   const n = document.getElementById('guest-name').value.trim();
   if(!n) { document.getElementById('guest-name').style.borderColor='var(--green)'; return; }
   guestName = n;
-  document.getElementById('header-name').textContent = 'Привет, ' + n;
+  document.getElementById('header-name').textContent = 'Привет, '+n;
+  
+  // Если пришёл по ссылке — показываем режим совместного заказа
+  if(IS_SHARED) {
+    document.getElementById('menu-mode-label').textContent = '🔗 Совместный заказ · Стол '+TABLE_NUM;
+  }
+  
   showScreen('menu');
-  document.getElementById('menu-list').innerHTML = '<div style="text-align:center;padding:60px 0;color:var(--txt3);">Загружаем меню...</div>';
+  document.getElementById('menu-list').innerHTML='<div style="text-align:center;padding:60px 0;color:var(--txt3);">Загружаем меню...</div>';
   await loadMenu();
   renderMenu('all');
   connectWS();
+  
+  // Если совместный — загружаем заказы стола чтобы видеть что уже заказано
+  if(IS_SHARED && sessionId) loadTableOrders(sessionId);
 }
 
 function showMenu() { showScreen('menu'); renderMenu(currentCat); }
-function showCart() { 
+
+function showCart() {
   showScreen('cart');
-  document.getElementById('cart-title').textContent = isAddingMore ? 'Добавить к заказу' : 'Мой заказ';
-  // Всегда сбрасываем кнопку при открытии корзины
+  document.getElementById('cart-title').textContent = isTakeaway ? '🛍 Заказ с собой' : isAddingMore ? 'Добавить к заказу' : 'Мой заказ';
   const btn = document.getElementById('order-btn');
   btn.disabled = false;
-  btn.innerHTML = (isAddingMore ? 'Добавить к заказу' : 'Оформить заказ') + ' <i class="ti ti-send"></i>';
-  renderCart(); 
+  btn.innerHTML = (isTakeaway ? 'Заказать с собой' : isAddingMore ? 'Добавить к заказу' : 'Оформить заказ') + ' <i class="ti ti-send"></i>';
+  renderCart();
 }
 
-function filterCat(btn, cat) {
-  document.querySelectorAll('.cat-pill').forEach(b => b.classList.remove('active'));
+function filterCat(btn,cat) {
+  document.querySelectorAll('.cat-pill').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  currentCat = cat;
+  currentCat=cat;
   renderMenu(cat);
 }
 
-function getTotal() { return Object.entries(cart).reduce((s,[id,q])=>{ const item=MENU.find(m=>String(m.id)===String(id)); return s+(item?item.price*q:0); },0); }
+function getTotal() { return Object.entries(cart).reduce((s,[id,q])=>{const item=MENU.find(m=>String(m.id)===String(id));return s+(item?item.price*q:0);},0); }
 function getCount() { return Object.values(cart).reduce((s,q)=>s+q,0); }
 
 function updateBadge() {
-  const c=getCount(); const t=getTotal();
+  const c=getCount(),t=getTotal();
   const badge=document.getElementById('cart-badge');
-  document.getElementById('cart-total-hdr').textContent = t>0?t+' ₽':'0 ₽';
+  document.getElementById('cart-total-hdr').textContent=t>0?t+' ₽':'0 ₽';
   if(c>0){badge.style.display='flex';badge.textContent=c;}else{badge.style.display='none';}
 }
 
 function renderMenu(cat) {
-  const items = cat==='all'?MENU:MENU.filter(m=>m.cat===cat);
-  if(!items.length){ document.getElementById('menu-list').innerHTML='<div style="text-align:center;padding:60px 0;color:var(--txt3);">Нет блюд</div>'; return; }
-  document.getElementById('menu-list').innerHTML = items.map(item => {
-    const qty = cart[String(item.id)]||0;
+  const items=cat==='all'?MENU:MENU.filter(m=>m.cat===cat);
+  if(!items.length){document.getElementById('menu-list').innerHTML='<div style="text-align:center;padding:60px 0;color:var(--txt3);">Нет блюд</div>';return;}
+  document.getElementById('menu-list').innerHTML=items.map(item=>{
+    const qty=cart[String(item.id)]||0;
     return `<div class="dish-card">
       ${item.image?`<img class="dish-img" src="${item.image}" />`:`<div class="dish-img-placeholder"><i class="ti ti-tools-kitchen-2" style="font-size:32px;color:var(--txt3);"></i></div>`}
       <div class="dish-body">
         <div class="dish-name">${item.name}</div>
         <div class="dish-desc">${item.desc}</div>
         <div class="dish-footer">
-          <div><div class="dish-price">${item.price} ₽</div><div class="dish-time"><i class="ti ti-clock" style="font-size:12px;"></i> ${item.time}</div></div>
+          <div><div class="dish-price">${item.price} ₽</div><div style="font-size:12px;color:var(--txt3);display:flex;align-items:center;gap:4px;"><i class="ti ti-clock" style="font-size:12px;"></i> ${item.time}</div></div>
           ${qty===0
             ?`<button class="add-dish-btn" onclick="addItem('${item.id}')">+ Добавить</button>`
-            :`<div class="qty-wrap"><button class="qty-btn" onclick="removeItem('${item.id}')">−</button><span class="qty-num">${qty}</span><button class="qty-btn plus" onclick="addItem('${item.id}')">+</button></div>`}
+            :`<div class="qty-wrap"><button class="qty-btn" onclick="removeItem('${item.id}')">−</button><span style="font-size:16px;font-weight:500;min-width:20px;text-align:center;">${qty}</span><button class="qty-btn plus" onclick="addItem('${item.id}')">+</button></div>`}
         </div>
       </div>
     </div>`;
@@ -327,81 +368,91 @@ function renderCart() {
   const entries=Object.entries(cart).filter(([,q])=>q>0);
   const el=document.getElementById('cart-list');
   if(!entries.length){el.innerHTML='<div style="text-align:center;padding:48px 0;color:var(--txt3);">Корзина пуста</div>';return;}
-  let html = isAddingMore ? `<div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:10px;padding:10px 14px;margin:12px 0;font-size:13px;color:var(--green-light);display:flex;align-items:center;gap:8px;"><i class="ti ti-plus"></i> Добавляется к вашему заказу</div>` : '';
-  html += entries.map(([id,qty])=>{
+  let html='';
+  if(isTakeaway) html+=`<div style="background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:10px;padding:10px 14px;margin:12px 0;font-size:13px;color:#5ba3e0;display:flex;align-items:center;gap:8px;"><i class="ti ti-shopping-bag"></i> Заказ с собой — упакуем для вас</div>`;
+  else if(isAddingMore) html+=`<div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:10px;padding:10px 14px;margin:12px 0;font-size:13px;color:var(--green-light);display:flex;align-items:center;gap:8px;"><i class="ti ti-plus"></i> Добавляется к вашему заказу</div>`;
+  html+=entries.map(([id,qty])=>{
     const item=MENU.find(m=>String(m.id)===String(id));
-    if(!item) return '';
+    if(!item)return'';
     return `<div class="cart-item"><div><div style="font-size:15px;font-weight:500;margin-bottom:2px;">${item.name}</div><div style="font-size:13px;color:var(--txt2);">${item.price} ₽ × ${qty}</div></div><div style="font-size:16px;font-weight:500;color:var(--green-light);">${item.price*qty} ₽</div></div>`;
   }).join('');
-  el.innerHTML = html;
+  el.innerHTML=html;
   document.getElementById('cart-count-f').textContent=getCount();
   document.getElementById('cart-total-f').textContent=getTotal()+' ₽';
-  const btn=document.getElementById('order-btn');
-  if(btn) btn.innerHTML=(isAddingMore?'Добавить к заказу':'Оформить заказ')+' <i class="ti ti-send"></i>';
 }
 
 async function handleOrderBtn() {
+  if(getCount()===0){alert('Добавьте блюда');return;}
   const btn=document.getElementById('order-btn');
-  btn.disabled=false;
-  btn.innerHTML=(isAddingMore?'Добавить к заказу':'Оформить заказ')+' <i class="ti ti-send"></i>';
-  if(getCount()===0){alert('Добавьте блюда в корзину');return;}
   btn.disabled=true;
-  btn.innerHTML='<div class="spinner"></div> '+(isAddingMore?'Добавляем...':'Отправляем...');
+  btn.innerHTML='<div class="spinner"></div> Отправляем...';
 
   const items=Object.entries(cart).filter(([,q])=>q>0).map(([id,qty])=>{
     const item=MENU.find(m=>String(m.id)===String(id));
-    return {id:String(id),name:item.name,qty,price:item.price};
+    return {id:String(id),name:item.name,qty,price:item.price,takeaway:isTakeaway,addition:isAddingMore&&!isTakeaway};
   });
 
+  const resetBtn=()=>{
+    btn.disabled=false;
+    btn.innerHTML=(isTakeaway?'Заказать с собой':isAddingMore?'Добавить к заказу':'Оформить заказ')+' <i class="ti ti-send"></i>';
+  };
+
   try {
-    if(isAddingMore && currentOrderId) {
-      const res = await fetch(API+'/api/orders/'+currentOrderId);
-      const existing = await res.json();
-      const merged = [...(existing.items||[])];
+    if(isAddingMore && currentOrderId && !isTakeaway) {
+      const res=await fetch(API+'/api/orders/'+currentOrderId);
+      const existing=await res.json();
+      const merged=[...(existing.items||[])];
       items.forEach(ni=>{
-        const idx=merged.findIndex(x=>String(x.id)===String(ni.id));
-        if(idx>=0) merged[idx].qty+=ni.qty; else merged.push(ni);
+        const idx=merged.findIndex(x=>String(x.id)===String(ni.id)&&!x.takeaway);
+        if(idx>=0) merged[idx].qty+=ni.qty;
+        else merged.push(ni);
       });
-      await fetch(API+'/api/orders/'+currentOrderId, {
-        method:'PUT', headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({items:merged,status:'new',has_additions:true})
-      });
+      await fetch(API+'/api/orders/'+currentOrderId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:merged,status:'new',has_additions:true})});
       cart={};isAddingMore=false;
       saveSession(false);
-      btn.disabled=false;
-      btn.innerHTML='Оформить заказ <i class="ti ti-send"></i>';
+      resetBtn();
       updateStatusUI('new');
       showScreen('status');
       if(sessionId) loadTableOrders(sessionId);
       return;
     }
 
-    // Получаем или создаём сессию
-    let sid = sessionId || SHARED_SESSION;
+    // Новый заказ
+    let sid=sessionId;
     if(!sid) {
-      const sessRes = await fetch(API+'/api/sessions/active/'+TABLE_NUM);
-      const sess = await sessRes.json();
-      if(sess) { sid=sess.id; }
+      const sessRes=await fetch(API+'/api/sessions/active/'+TABLE_NUM);
+      const sess=await sessRes.json();
+      if(sess){sid=sess.id;}
       else {
-        const newSessRes = await fetch(API+'/api/sessions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({table_number:TABLE_NUM})});
-        const newSess = await newSessRes.json();
+        const newSessRes=await fetch(API+'/api/sessions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({table_number:TABLE_NUM})});
+        const newSess=await newSessRes.json();
         sid=newSess.id;
       }
       sessionId=sid;
     }
 
-    const orderRes = await fetch(API+'/api/orders',{
-      method:'POST', headers:{'Content-Type':'application/json'},
+    const orderRes=await fetch(API+'/api/orders',{
+      method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({table_number:TABLE_NUM,guest_name:guestName,guest_name_display:guestName,items,session_id:sid,is_takeaway:isTakeaway})
     });
-    const order = await orderRes.json();
+    const order=await orderRes.json();
     currentOrderId=order.id;
     cart={};
-    isTakeaway=false;
+    const wasTakeaway=isTakeaway;
+    isTakeaway=false;isAddingMore=false;
     saveSession(false);
-    showScreen('status');
-    updateStatusUI('new');
-    loadTableOrders(sid);
+
+    // Если пришёл по ссылке — показываем только свой заказ
+    if(IS_SHARED) {
+      showSharedStatus(order, wasTakeaway);
+    } else {
+      showScreen('status');
+      updateStatusUI('new');
+      loadTableOrders(sid);
+      // Скрываем счёт стола для заказа с собой
+      if(wasTakeaway) document.getElementById('table-bill-card').style.display='none';
+    }
+    connectWS();
 
   } catch(e) {
     console.error(e);
@@ -410,20 +461,117 @@ async function handleOrderBtn() {
   }
 }
 
-function addMoreItems(){
-  isAddingMore=true;
+// Экран для гостя по ссылке — только его заказ
+function showSharedStatus(order, wasTakeaway) {
+  showScreen('status');
+  document.getElementById('status-title').textContent = wasTakeaway ? '🛍 Заказ с собой принят!' : 'Заказ принят!';
+  document.getElementById('status-sub').textContent = 'Кухня уже получила ваш заказ';
+  
+  // Скрываем кнопки поделиться и счёт стола
+  document.getElementById('table-bill-card').style.display='none';
+  document.getElementById('status-buttons').innerHTML=`
+    <button class="btn-green" onclick="addMoreItems()"><i class="ti ti-plus"></i> Добавить к заказу</button>
+  `;
+  
+  // Показываем свой заказ
+  const myOrderCard=document.getElementById('my-order-card');
+  myOrderCard.style.display='block';
+  const total=(order.items||[]).reduce((s,i)=>s+i.price*(i.qty||1),0);
+  document.getElementById('my-order-list').innerHTML=(order.items||[]).map(i=>`
+    <div class="bill-row"><span>${i.name}</span><span>${i.price*(i.qty||1)} ₽</span></div>
+  `).join('')+`<div style="display:flex;justify-content:space-between;padding-top:10px;margin-top:4px;border-top:1px solid var(--bdr);"><span style="font-weight:500;">Итого</span><span style="font-weight:500;color:var(--green-light);">${total} ₽</span></div>`;
+  
+  if(wasTakeaway) {
+    document.getElementById('step3-label').textContent='Готово';
+    document.getElementById('step3-sub').textContent='Заберите у стойки';
+  }
+  
+  subscribeToMyOrder(order.id, wasTakeaway);
+}
+
+function subscribeToMyOrder(orderId, wasTakeaway) {
+  if(!ws) connectWS();
+  const originalHandler = ws ? ws.onmessage : null;
+  // Добавляем обработчик для своего заказа
+  const checkReady = (msg) => {
+    if(msg.type==='order_updated' && msg.order.id===orderId) {
+      updateStatusUI(msg.order.status);
+      if(msg.order.status==='ready') {
+        showReadyNotification(wasTakeaway);
+      }
+    }
+  };
+  if(ws) {
+    const prev = ws.onmessage;
+    ws.onmessage = (e) => {
+      try { checkReady(JSON.parse(e.data)); } catch(err){}
+      if(prev) prev(e);
+    };
+  }
+}
+
+function showReadyNotification(isTakeaway) {
+  const notif=document.getElementById('ready-notification');
+  document.getElementById('ready-title').textContent = isTakeaway ? '🛍 Заказ с собой готов!' : '🎉 Заказ готов!';
+  document.getElementById('ready-subtitle').textContent = isTakeaway ? 'Заберите заказ у стойки' : 'Уже несём к вашему столику';
+  notif.classList.add('show');
+  // Вибрация если поддерживается
+  if(navigator.vibrate) navigator.vibrate([300,100,300]);
+}
+
+function closeReadyNotification() {
+  document.getElementById('ready-notification').classList.remove('show');
+}
+
+function addMoreItems() {
+  isAddingMore=true;isTakeaway=false;
   cart={};
-  isTakeaway=false;
   saveSession(true);
-  // Сбрасываем кнопку
-  const btn = document.getElementById('order-btn');
-  if(btn) { btn.disabled=false; btn.innerHTML='Добавить к заказу <i class="ti ti-send"></i>'; }
+  const btn=document.getElementById('order-btn');
+  if(btn){btn.disabled=false;btn.innerHTML='Добавить к заказу <i class="ti ti-send"></i>';}
   showScreen('menu');
   renderMenu(currentCat||'all');
 }
 
+function orderTakeaway() {
+  isTakeaway=true;isAddingMore=false;
+  cart={};
+  const btn=document.getElementById('order-btn');
+  if(btn){btn.disabled=false;btn.innerHTML='Заказать с собой <i class="ti ti-shopping-bag"></i>';}
+  showScreen('menu');
+  renderMenu(currentCat||'all');
+  // Баннер
+  setTimeout(()=>{
+    const grid=document.getElementById('menu-list');
+    if(grid&&!document.getElementById('takeaway-banner')){
+      const b=document.createElement('div');
+      b.id='takeaway-banner';
+      b.style.cssText='background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:12px;padding:12px 16px;margin-bottom:4px;display:flex;align-items:center;gap:10px;font-size:13px;color:#5ba3e0;';
+      b.innerHTML='<i class="ti ti-shopping-bag" style="font-size:16px;"></i> Заказ с собой — выберите блюда';
+      grid.insertBefore(b,grid.firstChild);
+    }
+  },100);
+}
+
+function shareMenu() {
+  const shareUrl = `${window.location.origin}${window.location.pathname}?table=${TABLE_NUM}&session=${sessionId}`;
+  if(navigator.share) {
+    navigator.share({
+      title:'Меню ресторана',
+      text:'Выбери что хочешь 🍽️ Заказ добавится к нашему столу!',
+      url:shareUrl
+    });
+  } else {
+    navigator.clipboard.writeText(shareUrl).then(()=>{
+      alert('Ссылка скопирована!\n\nОтправь другу — они откроют меню и их заказ добавится к вашему столу.');
+    }).catch(()=>{
+      prompt('Скопируй ссылку:',shareUrl);
+    });
+  }
+}
+
 function updateStatusUI(status) {
-  const s2=document.getElementById('step2');const s3=document.getElementById('step3');
+  const s2=document.getElementById('step2'),s3=document.getElementById('step3');
   if(status==='cooking'){
     s2.classList.add('done');
     document.getElementById('status-title').textContent='Готовится ваш заказ';
@@ -432,16 +580,17 @@ function updateStatusUI(status) {
     s2.classList.add('done');s3.classList.add('done');
     document.getElementById('status-title').textContent='🎉 Заказ готов!';
     document.getElementById('status-sub').textContent='Уже несём к вашему столику!';
+    showReadyNotification(false);
     clearSession();
   }
 }
 
 async function loadTableOrders(sid) {
   try {
-    const res = await fetch(API+'/api/orders/session/'+sid);
-    tableOrders = await res.json();
+    const res=await fetch(API+'/api/orders/session/'+sid);
+    tableOrders=await res.json();
     renderBill();
-  } catch(e) {}
+  } catch(e){}
 }
 
 function renderBill() {
@@ -453,7 +602,11 @@ function renderBill() {
     const ot=(o.items||[]).reduce((s,i)=>s+i.price*(i.qty||1),0);
     total+=ot;
     const isMe=o.id===currentOrderId;
-    return `<div class="bill-row" style="${isMe?'color:var(--green-light);':''}"><span>${o.guest_name_display||o.guest_name}${isMe?' (вы)':''}</span><span style="font-weight:500;">${ot} ₽</span></div>`;
+    const isTw=o.is_takeaway;
+    return `<div class="bill-row" style="${isMe?'color:var(--green-light);':''}">
+      <span>${o.guest_name_display||o.guest_name}${isMe?' (вы)':''}${isTw?' 🛍':''}</span>
+      <span style="font-weight:500;">${ot} ₽</span>
+    </div>`;
   }).join('');
   document.getElementById('table-total').textContent=total+' ₽';
 }
@@ -477,43 +630,6 @@ function showSplitDetail(type) {
   document.getElementById('split-detail').style.display='block';
 }
 
-let isTakeaway = false;
-
-function orderTakeaway() {
-  // Открываем меню в режиме "С собой"
-  isTakeaway = true;
-  isAddingMore = true;
-  cart = {};
-  saveSession(true);
-  showScreen('menu');
-  renderMenu(currentCat || 'all');
-  // Баннер "С собой"
-  const grid = document.getElementById('menu-list');
-  const banner = document.createElement('div');
-  banner.style.cssText = 'background:rgba(24,95,165,0.1);border:1px solid rgba(24,95,165,0.3);border-radius:12px;padding:12px 16px;margin-bottom:4px;display:flex;align-items:center;gap:10px;font-size:13px;color:#5ba3e0;';
-  banner.innerHTML = '<i class="ti ti-shopping-bag" style="font-size:16px;"></i> Заказ С собой — выберите блюда';
-  grid.insertBefore(banner, grid.firstChild);
-}
-
-function shareMenu() {
-  // Формируем ссылку с номером стола и session_id
-  const shareUrl = window.location.origin + window.location.pathname + '?table=' + TABLE_NUM + '&session=' + sessionId;
-  if(navigator.share) {
-    navigator.share({
-      title: 'Меню ресторана',
-      text: 'Выбери что хочешь — заказ добавится к нашему столу 🍽️',
-      url: shareUrl
-    });
-  } else {
-    // Копируем в буфер
-    navigator.clipboard.writeText(shareUrl).then(() => {
-      alert('Ссылка скопирована! Отправь другу/жене — они выберут блюда и заказ добавится к вашему столу.');
-    }).catch(() => {
-      prompt('Скопируй ссылку:', shareUrl);
-    });
-  }
-}
-
 async function restoreSession() {
   const saved=localStorage.getItem(SESSION_KEY);
   if(!saved) return;
@@ -522,36 +638,36 @@ async function restoreSession() {
     if(!s.currentOrderId) return;
     const res=await fetch(API+'/api/orders/'+s.currentOrderId);
     const data=await res.json();
-    if(!data) { clearSession(); return; }
-    guestName=data.guest_name;currentOrderId=data.id;sessionId=data.session_id;
+    if(!data){clearSession();return;}
+    guestName=data.guest_name;currentOrderId=data.id;sessionId=data.session_id||sessionId;
     document.getElementById('header-name').textContent='Привет, '+guestName;
     connectWS();
-    if(s.isAddingMore) {
+    if(s.isAddingMore){
       isAddingMore=true;
-      await loadMenu();
-      showScreen('menu');
-      renderMenu('all');
+      await loadMenu();showScreen('menu');renderMenu('all');
     } else {
-      showScreen('status');
-      updateStatusUI(data.status);
-      if(data.session_id) loadTableOrders(data.session_id);
+      showScreen('status');updateStatusUI(data.status);
+      if(data.session_id&&!IS_SHARED) loadTableOrders(data.session_id);
+      if(IS_SHARED) {
+        showSharedStatus(data, data.is_takeaway);
+      }
     }
-  } catch(e) { clearSession(); }
+  } catch(e){clearSession();}
 }
 
-restoreSession();
-
-// Принудительно сбрасываем кнопку каждые 500мс пока корзина видна
-setInterval(() => {
-  const cartScreen = document.getElementById('screen-cart');
-  if(cartScreen && cartScreen.classList.contains('active')) {
-    const btn = document.getElementById('order-btn');
-    if(btn && btn.disabled && !btn.innerHTML.includes('spinner')) {
-      btn.disabled = false;
-      btn.innerHTML = (isAddingMore ? 'Добавить к заказу' : 'Оформить заказ') + ' <i class="ti ti-send"></i>';
+// Автосброс кнопки
+setInterval(()=>{
+  const cartScreen=document.getElementById('screen-cart');
+  if(cartScreen&&cartScreen.classList.contains('active')){
+    const btn=document.getElementById('order-btn');
+    if(btn&&btn.disabled&&!btn.innerHTML.includes('spinner')){
+      btn.disabled=false;
+      btn.innerHTML=(isTakeaway?'Заказать с собой':isAddingMore?'Добавить к заказу':'Оформить заказ')+' <i class="ti ti-send"></i>';
     }
   }
-}, 500);
+},500);
+
+restoreSession();
 </script>
 </body>
 </html>
