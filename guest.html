@@ -189,6 +189,18 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgr
       </div>
     </div>
 
+    <!-- Таймер -->
+    <div id="timer-block" style="display:none;margin:0 20px 16px;">
+      <div style="background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);padding:20px;text-align:center;">
+        <div style="font-size:12px;color:var(--txt3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;">Примерное время готовности</div>
+        <div style="font-size:56px;font-weight:300;color:var(--green-light);letter-spacing:-2px;line-height:1;" id="timer-display">--:--</div>
+        <div style="margin-top:12px;height:4px;background:var(--bdr);border-radius:4px;overflow:hidden;">
+          <div id="timer-progress" style="height:100%;background:var(--green);border-radius:4px;width:100%;transition:width 1s linear;"></div>
+        </div>
+        <div style="font-size:12px;color:var(--txt3);margin-top:8px;" id="timer-sub">Готовим ваш заказ</div>
+      </div>
+    </div>
+
     <!-- Мой заказ -->
     <div class="bill-card" id="my-order-card" style="display:none;">
       <div style="font-size:13px;font-weight:500;color:var(--txt2);margin-bottom:8px;">Мой заказ</div>
@@ -726,6 +738,7 @@ function updateStatusUI(status) {
     s2.classList.add('done');s3.classList.add('done');
     document.getElementById('status-title').textContent='🎉 Заказ готов!';
     document.getElementById('status-sub').textContent='Уже несём к вашему столику!';
+    stopTimer();
     showReadyNotification(false);
     clearSession();
   }
@@ -775,6 +788,81 @@ function renderBill() {
     </div>`;
   }).join('');
   document.getElementById('table-total').textContent=total+' ₽';
+}
+
+// ТАЙМЕР
+let timerInterval = null;
+let timerEndTime = null;
+let timerTotalSeconds = 0;
+
+function startTimer(items) {
+  // Находим максимальное время готовки
+  let maxMins = 15; // по умолчанию
+  if(items && items.length) {
+    items.forEach(item => {
+      const menuItem = MENU.find(m => String(m.id) === String(item.id));
+      if(menuItem && menuItem.time) {
+        const match = menuItem.time.match(/(\d+)/);
+        if(match) {
+          const mins = parseInt(match[1]);
+          if(mins > maxMins) maxMins = mins;
+        }
+      }
+    });
+    // Если несколько блюд — добавляем 5 минут буфер
+    if(items.length > 2) maxMins += 5;
+  }
+  
+  timerTotalSeconds = maxMins * 60;
+  timerEndTime = Date.now() + timerTotalSeconds * 1000;
+  
+  // Сохраняем таймер в localStorage для восстановления
+  if(currentOrderId) {
+    localStorage.setItem('timer_end_'+currentOrderId, timerEndTime);
+    localStorage.setItem('timer_total_'+currentOrderId, timerTotalSeconds);
+  }
+  
+  document.getElementById('timer-block').style.display = 'block';
+  updateTimer();
+  timerInterval = setInterval(updateTimer, 1000);
+}
+
+function updateTimer() {
+  if(!timerEndTime) return;
+  const remaining = Math.max(0, Math.floor((timerEndTime - Date.now()) / 1000));
+  const mins = Math.floor(remaining / 60);
+  const secs = remaining % 60;
+  const display = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+  
+  const timerEl = document.getElementById('timer-display');
+  const progressEl = document.getElementById('timer-progress');
+  const subEl = document.getElementById('timer-sub');
+  
+  if(timerEl) timerEl.textContent = display;
+  if(progressEl) {
+    const pct = (remaining / timerTotalSeconds) * 100;
+    progressEl.style.width = pct + '%';
+    // Меняем цвет когда мало времени
+    if(pct < 20) progressEl.style.background = '#E24B4A';
+    else if(pct < 40) progressEl.style.background = '#BA7517';
+    else progressEl.style.background = 'var(--green)';
+  }
+  if(subEl) {
+    if(remaining === 0) { subEl.textContent = 'Заказ должен быть готов с минуты на минуту'; }
+    else if(remaining < 120) { subEl.textContent = 'Почти готово!'; }
+    else { subEl.textContent = 'Готовим ваш заказ'; }
+  }
+  
+  if(remaining === 0 && timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+}
+
+function stopTimer() {
+  if(timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  const timerBlock = document.getElementById('timer-block');
+  if(timerBlock) timerBlock.style.display = 'none';
 }
 
 let selectedPayType = 'together';
@@ -1029,7 +1117,19 @@ async function restoreSession() {
       await loadMenu();showScreen('menu');renderMenu('all');
     } else {
       showScreen('status');updateStatusUI(data.status);
-      if(data.status==='new') { const cb=document.getElementById('cancel-btn'); if(cb) cb.style.display='flex'; }
+      if(data.status==='new') {
+        const cb=document.getElementById('cancel-btn'); if(cb) cb.style.display='flex';
+        // Восстанавливаем таймер если заказ ещё готовится
+        const savedEnd = localStorage.getItem('timer_end_'+data.id);
+        const savedTotal = localStorage.getItem('timer_total_'+data.id);
+        if(savedEnd && savedTotal && Date.now() < parseInt(savedEnd)) {
+          timerEndTime = parseInt(savedEnd);
+          timerTotalSeconds = parseInt(savedTotal);
+          document.getElementById('timer-block').style.display='block';
+          updateTimer();
+          timerInterval = setInterval(updateTimer, 1000);
+        }
+      }
       if(data.session_id&&!IS_SHARED) loadTableOrders(data.session_id);
       if(IS_SHARED) {
         showSharedStatus(data, data.is_takeaway);
