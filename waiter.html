@@ -129,18 +129,18 @@ async function doLogin() {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({login, password})
     });
-    if(!res.ok) {
-      const err = await res.json();
+    const data = await res.json();
+    if(!res.ok || data.error) {
       document.getElementById('login-error').style.display='block';
-      document.getElementById('login-error').textContent = err.error || 'Ошибка входа';
+      document.getElementById('login-error').textContent = data.error || 'Неверный логин или пароль';
       return;
     }
-    waiterData = await res.json();
+    waiterData = data;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(waiterData));
     startApp();
   } catch(e) {
     document.getElementById('login-error').style.display='block';
-    document.getElementById('login-error').textContent = 'Ошибка соединения';
+    document.getElementById('login-error').textContent = 'Ошибка соединения: ' + e.message;
   }
 }
 
