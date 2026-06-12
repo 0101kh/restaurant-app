@@ -44,6 +44,35 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgr
   </div>
 </div>
 
+<!-- Модал: принять заказ -->
+<div id="take-order-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:flex-end;justify-content:center;">
+  <div style="background:#fff;border-radius:16px 16px 0 0;padding:24px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h3 style="font-size:18px;font-weight:500;">Принять заказ</h3>
+      <button onclick="closeTakeOrder()" style="background:none;border:none;cursor:pointer;font-size:20px;color:#888;">✕</button>
+    </div>
+    <div style="margin-bottom:14px;">
+      <div style="font-size:13px;color:#888;margin-bottom:6px;">Стол</div>
+      <select id="to-table" style="width:100%;padding:12px;font-size:15px;border:1px solid rgba(0,0,0,0.2);border-radius:8px;background:#fff;font-family:inherit;outline:none;"></select>
+    </div>
+    <div style="margin-bottom:14px;">
+      <div style="font-size:13px;color:#888;margin-bottom:6px;">Имя гостя</div>
+      <input type="text" id="to-guest" placeholder="Имя гостя" style="width:100%;padding:12px;font-size:15px;border:1px solid rgba(0,0,0,0.2);border-radius:8px;font-family:inherit;outline:none;" />
+    </div>
+    <div style="margin-bottom:16px;">
+      <div style="font-size:13px;color:#888;margin-bottom:8px;">Блюда</div>
+      <div id="to-menu-list" style="display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto;"></div>
+    </div>
+    <div style="background:#f5f5f3;border-radius:8px;padding:12px;margin-bottom:14px;display:flex;justify-content:space-between;">
+      <span style="font-size:14px;font-weight:500;">Итого</span>
+      <span style="font-size:16px;font-weight:600;color:#1a7a4a;" id="to-total">0 ₽</span>
+    </div>
+    <button onclick="submitTakeOrder()" style="width:100%;padding:14px;background:#1a7a4a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;">
+      <i class="ti ti-send"></i> Отправить на кухню
+    </button>
+  </div>
+</div>
+
 <!-- LOGIN -->
 <div id="screen-login" class="screen active" style="min-height:100vh;align-items:center;justify-content:center;padding:24px;">
   <div style="background:var(--bg);border-radius:var(--r);padding:32px 24px;width:100%;max-width:340px;text-align:center;">
@@ -72,6 +101,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgr
       <div style="display:flex;align-items:center;gap:8px;">
         <span class="dot" id="conn-dot"></span>
         <span style="font-size:13px;color:var(--txt2);" id="conn-status">—</span>
+        <button onclick="openTakeOrder()" style="background:var(--acc);color:#fff;border:none;border-radius:var(--rm);padding:8px 14px;font-size:13px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;"><i class="ti ti-plus"></i> Заказ</button>
         <button onclick="doLogout()" style="background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--rm);padding:8px 12px;font-size:13px;cursor:pointer;color:var(--txt2);font-family:inherit;">Выйти</button>
       </div>
     </div>
@@ -147,6 +177,86 @@ async function doLogin() {
   } catch(e) {
     document.getElementById('login-error').style.display='block';
     document.getElementById('login-error').textContent = 'Ошибка соединения: ' + e.message;
+  }
+}
+
+let toCart = {};
+let toMenu = [];
+
+async function openTakeOrder() {
+  toCart = {};
+  // Загружаем меню
+  try {
+    const res = await fetch(API+'/api/menu');
+    toMenu = await res.json();
+  } catch(e) { toMenu = []; }
+  
+  // Заполняем столы официанта
+  const tables = waiterData.tables || [];
+  const sel = document.getElementById('to-table');
+  sel.innerHTML = tables.map(t=>`<option value="${t}">Стол ${t}</option>`).join('');
+  
+  renderToMenu();
+  document.getElementById('take-order-modal').style.display='flex';
+}
+
+function closeTakeOrder() {
+  document.getElementById('take-order-modal').style.display='none';
+  toCart={};
+}
+
+function renderToMenu() {
+  const el = document.getElementById('to-menu-list');
+  el.innerHTML = toMenu.map(item => {
+    const qty = toCart[item.id] || 0;
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px;background:#fff;border:0.5px solid rgba(0,0,0,0.1);border-radius:8px;">
+      <div>
+        <div style="font-size:14px;font-weight:500;">${item.name}</div>
+        <div style="font-size:12px;color:#888;">${item.price} ₽</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        ${qty > 0 ? `<button onclick="toRemove('${item.id}')" style="width:28px;height:28px;border-radius:50%;border:1px solid rgba(0,0,0,0.2);background:#f5f5f3;cursor:pointer;font-size:16px;">−</button><span style="font-size:14px;font-weight:500;min-width:16px;text-align:center;">${qty}</span>` : ''}
+        <button onclick="toAdd('${item.id}')" style="width:28px;height:28px;border-radius:50%;border:none;background:#1a7a4a;color:#fff;cursor:pointer;font-size:16px;">+</button>
+      </div>
+    </div>`;
+  }).join('');
+  
+  const total = Object.entries(toCart).reduce((s,[id,q])=>{
+    const item = toMenu.find(m=>String(m.id)===String(id));
+    return s + (item ? item.price*q : 0);
+  }, 0);
+  document.getElementById('to-total').textContent = total + ' ₽';
+}
+
+function toAdd(id) { toCart[id]=(toCart[id]||0)+1; renderToMenu(); }
+function toRemove(id) { if(toCart[id]>1) toCart[id]--; else delete toCart[id]; renderToMenu(); }
+
+async function submitTakeOrder() {
+  const tableNum = parseInt(document.getElementById('to-table').value);
+  const guestName = document.getElementById('to-guest').value.trim() || 'Гость';
+  const items = Object.entries(toCart).filter(([,q])=>q>0).map(([id,qty])=>{
+    const item = toMenu.find(m=>String(m.id)===String(id));
+    return {id:String(id),name:item.name,qty,price:item.price};
+  });
+  if(!items.length) { alert('Добавьте хотя бы одно блюдо'); return; }
+  
+  try {
+    // Получаем или создаём сессию
+    const sessRes = await fetch(API+'/api/sessions/active/'+tableNum);
+    let sess = await sessRes.json();
+    if(!sess) {
+      const newSessRes = await fetch(API+'/api/sessions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({table_number:tableNum})});
+      sess = await newSessRes.json();
+    }
+    await fetch(API+'/api/orders',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({table_number:tableNum,guest_name:guestName,guest_name_display:guestName,items,session_id:sess.id})
+    });
+    closeTakeOrder();
+    loadOrders();
+    showNotif('✅ Заказ отправлен на кухню', 'Стол '+tableNum+' · '+guestName);
+  } catch(e) {
+    alert('Ошибка. Попробуйте ещё раз.');
   }
 }
 
@@ -305,13 +415,31 @@ async function confirmPay(sessionId) {
 }
 
 let notifTimeout = null;
+function playNotifSound() {
+  try {
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    [880, 1100].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value = freq; osc.type = 'sine';
+      const t = ctx.currentTime + i * 0.15;
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.4, t + 0.05);
+      gain.gain.linearRampToValueAtTime(0, t + 0.3);
+      osc.start(t); osc.stop(t + 0.35);
+    });
+  } catch(e) {}
+}
+
 function showNotif(title, sub) {
   document.getElementById('notif-text').textContent = title;
   document.getElementById('notif-sub').textContent = sub;
   document.getElementById('order-notification').style.display='block';
-  if(navigator.vibrate) navigator.vibrate([300,100,300]);
+  if(navigator.vibrate) navigator.vibrate([300, 100, 300]);
+  playNotifSound();
   if(notifTimeout) clearTimeout(notifTimeout);
-  notifTimeout = setTimeout(closeNotif, 6000);
+  notifTimeout = setTimeout(closeNotif, 8000);
 }
 function closeNotif() {
   document.getElementById('order-notification').style.display='none';
