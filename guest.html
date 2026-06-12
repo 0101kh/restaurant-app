@@ -258,6 +258,41 @@ if(IS_SHARED) {
 }
 
 const SESSION_KEY = 'rst_v3_t' + TABLE_NUM + (IS_SHARED ? '_s' : '');
+
+// Звук уведомления
+let audioCtx = null;
+
+function initAudio() {
+  if(!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+}
+
+function playReadySound() {
+  try {
+    initAudio();
+    if(!audioCtx) return;
+    
+    // Играем три ноты — приятный звонок
+    const notes = [523, 659, 784]; // До, Ми, Соль
+    notes.forEach((freq, i) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.value = freq;
+      osc.type = 'sine';
+      const startTime = audioCtx.currentTime + i * 0.15;
+      gain.gain.setValueAtTime(0, startTime);
+      gain.gain.linearRampToValueAtTime(0.4, startTime + 0.05);
+      gain.gain.linearRampToValueAtTime(0, startTime + 0.3);
+      osc.start(startTime);
+      osc.stop(startTime + 0.35);
+    });
+  } catch(e) {
+    console.log('Audio not available:', e);
+  }
+}
 const restaurantName = localStorage.getItem('restaurant_name') || '';
 if(restaurantName) document.getElementById('restaurant-name-display').textContent = restaurantName;
 
@@ -318,6 +353,7 @@ function connectWS() {
 }
 
 async function enterMenu() {
+  initAudio(); // Разблокируем аудио при первом нажатии
   const n = document.getElementById('guest-name').value.trim();
   if(!n) { document.getElementById('guest-name').style.borderColor='var(--green)'; return; }
   guestName = n;
@@ -544,8 +580,10 @@ function showReadyNotification(isTakeaway) {
   document.getElementById('ready-title').textContent = isTakeaway ? '🛍 Заказ с собой готов!' : '🎉 Заказ готов!';
   document.getElementById('ready-subtitle').textContent = isTakeaway ? 'Заберите заказ у стойки' : 'Уже несём к вашему столику';
   notif.classList.add('show');
-  // Вибрация если поддерживается
-  if(navigator.vibrate) navigator.vibrate([300,100,300]);
+  // Вибрация
+  if(navigator.vibrate) navigator.vibrate([300, 100, 300, 100, 300]);
+  // Звук
+  playReadySound();
 }
 
 function closeReadyNotification() {
