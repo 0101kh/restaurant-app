@@ -335,11 +335,19 @@ function playReadySound() {
     console.log('Audio not available:', e);
   }
 }
-const restaurantName = localStorage.getItem('restaurant_name') || '';
-if(restaurantName) document.getElementById('restaurant-name-display').textContent = restaurantName;
-
-// СБП настройки синхронизируем с localStorage (они устанавливаются через одно устройство)
-// Для продакшена нужно хранить на сервере
+// Загружаем настройки с сервера
+let appSettings = {};
+async function loadSettings() {
+  try {
+    const res = await fetch(API+'/api/settings');
+    appSettings = await res.json();
+    const nameEl = document.getElementById('restaurant-name-display');
+    if(nameEl && appSettings.restaurant_name) {
+      nameEl.textContent = appSettings.restaurant_name;
+    }
+  } catch(e) {}
+}
+loadSettings();
 
 let MENU = [];
 let cart = {};
@@ -782,8 +790,8 @@ function selectPayMethod(method) {
 }
 
 function openSbpApp() {
-  const phone = localStorage.getItem('sbp_phone') || '';
-  const name = localStorage.getItem('sbp_name') || '';
+  const phone = appSettings.sbp_phone || '';
+  const name = appSettings.sbp_name || '';
   const total = selectedPayType==='together'
     ? tableOrders.reduce((s,o)=>(o.items||[]).reduce((ss,i)=>ss+i.price*(i.qty||1),0)+s,0)
     : tableOrders.find(o=>o.id===currentOrderId) ? (tableOrders.find(o=>o.id===currentOrderId).items||[]).reduce((s,i)=>s+i.price*(i.qty||1),0) : 0;

@@ -251,21 +251,21 @@ function getCatColor(id) {
   return {bg: colors[idx], color: textColors[idx]};
 }
 
-function saveRestaurantName() {
+async function saveRestaurantName() {
   const name = document.getElementById('restaurant-name-input').value.trim();
-  localStorage.setItem('restaurant_name', name);
+  await fetch(API+'/api/settings', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:'restaurant_name',value:name})});
   alert('Название сохранено!');
 }
 
-function saveSbpPhone() {
+async function saveSbpPhone() {
   const phone = document.getElementById('sbp-phone-input').value.trim();
-  localStorage.setItem('sbp_phone', phone);
+  await fetch(API+'/api/settings', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:'sbp_phone',value:phone})});
   alert('Номер СБП сохранён!');
 }
 
-function saveSbpName() {
+async function saveSbpName() {
   const name = document.getElementById('sbp-name-input').value.trim();
-  localStorage.setItem('sbp_name', name);
+  await fetch(API+'/api/settings', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key:'sbp_name',value:name})});
   alert('Имя получателя сохранено!');
 }
 
@@ -300,17 +300,17 @@ function switchAdminTab(tab) {
 
 async function loadStats() {
   // Set restaurant name input value
-  const rName = localStorage.getItem('restaurant_name') || '';
-  const rInput = document.getElementById('restaurant-name-input');
-  if(rInput) rInput.value = rName;
-  
-  const sbpPhone = localStorage.getItem('sbp_phone') || '';
-  const sbpPhoneInput = document.getElementById('sbp-phone-input');
-  if(sbpPhoneInput) sbpPhoneInput.value = sbpPhone;
-  
-  const sbpName = localStorage.getItem('sbp_name') || '';
-  const sbpNameInput = document.getElementById('sbp-name-input');
-  if(sbpNameInput) sbpNameInput.value = sbpName;
+  // Загружаем настройки с сервера
+  try {
+    const settingsRes = await fetch(API+'/api/settings');
+    const settings = await settingsRes.json();
+    const rInput = document.getElementById('restaurant-name-input');
+    if(rInput) rInput.value = settings.restaurant_name || '';
+    const sbpPhoneInput = document.getElementById('sbp-phone-input');
+    if(sbpPhoneInput) sbpPhoneInput.value = settings.sbp_phone || '';
+    const sbpNameInput = document.getElementById('sbp-name-input');
+    if(sbpNameInput) sbpNameInput.value = settings.sbp_name || '';
+  } catch(e) {}
   
   try {
     const [activeRes, historyRes] = await Promise.all([
