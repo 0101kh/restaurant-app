@@ -5,399 +5,539 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>QRMenu — Системаи фармоиш барои ресторан</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Inter:wght@300;400;500&display=swap');
 
 :root {
-  --ink:#0f0f0d;--ink2:#3a3a36;--ink3:#7a7a72;
-  --cream:#f7f4ee;--green:#1a6640;--green-light:#2a9460;
-  --green-bg:rgba(26,102,64,0.08);--gold:#c4922a;
-  --white:#ffffff;--bdr:rgba(15,15,13,0.1);
+  --black: #080807;
+  --dark: #111110;
+  --dark2: #1c1c1a;
+  --dark3: #2a2a27;
+  --gold: #c8a96e;
+  --gold2: #e8c98e;
+  --gold-bg: rgba(200,169,110,0.08);
+  --gold-border: rgba(200,169,110,0.2);
+  --white: #f5f2ec;
+  --white2: #e8e4dc;
+  --muted: rgba(245,242,236,0.45);
+  --muted2: rgba(245,242,236,0.2);
 }
-* { box-sizing:border-box;margin:0;padding:0; }
+
+* { box-sizing:border-box; margin:0; padding:0; }
 html { scroll-behavior:smooth; }
-body { font-family:'Inter',sans-serif;background:var(--cream);color:var(--ink);overflow-x:hidden; }
 
-nav { position:fixed;top:0;left:0;right:0;z-index:100;padding:20px 40px;display:flex;justify-content:space-between;align-items:center;background:rgba(247,244,238,0.9);backdrop-filter:blur(12px);border-bottom:1px solid var(--bdr); }
-.nav-logo { font-family:'Playfair Display',serif;font-size:20px;font-weight:500;letter-spacing:1px; }
-.nav-logo span { color:var(--green); }
-.nav-cta { padding:10px 22px;background:var(--green);color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif; }
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--black);
+  color: var(--white);
+  overflow-x: hidden;
+}
 
-.hero { min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:120px 40px 80px;position:relative;overflow:hidden;background:var(--ink); }
-.hero::before { content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 60% 40%,rgba(26,102,64,0.25) 0%,transparent 70%); }
-.hero-eyebrow { font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--green-light);margin-bottom:24px;font-weight:500;position:relative; }
-.hero-title { font-family:'Playfair Display',serif;font-size:clamp(40px,6vw,80px);font-weight:400;color:#fff;line-height:1.05;max-width:720px;position:relative;margin-bottom:32px; }
-.hero-title em { font-style:italic;color:var(--green-light); }
-.hero-sub { font-size:17px;color:rgba(255,255,255,0.55);max-width:480px;line-height:1.7;position:relative;margin-bottom:48px; }
-.hero-stats { display:flex;gap:48px;flex-wrap:wrap;position:relative;border-top:1px solid rgba(255,255,255,0.1);padding-top:40px; }
-.stat-num { font-size:40px;font-weight:300;color:#fff;letter-spacing:-1px; }
-.stat-num span { font-size:24px;color:var(--green-light); }
-.stat-label { font-size:12px;color:rgba(255,255,255,0.4);letter-spacing:1px;text-transform:uppercase;margin-top:4px; }
+/* NAV */
+nav {
+  position: fixed; top:0; left:0; right:0; z-index:100;
+  padding: 24px 48px;
+  display: flex; justify-content:space-between; align-items:center;
+  background: rgba(8,8,7,0.8);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--muted2);
+}
+.logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px; font-weight: 400; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--gold);
+}
+.nav-btn {
+  padding: 10px 24px;
+  border: 1px solid var(--gold-border);
+  background: transparent;
+  color: var(--gold);
+  font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+  cursor: pointer; font-family: 'Inter', sans-serif;
+  transition: all 0.3s;
+}
+.nav-btn:hover { background: var(--gold-bg); }
 
-section { padding:100px 40px; }
-.section-eyebrow { font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--green);margin-bottom:16px;font-weight:500; }
-.section-title { font-family:'Playfair Display',serif;font-size:clamp(28px,4vw,48px);font-weight:400;line-height:1.1;margin-bottom:20px; }
-.section-sub { font-size:16px;color:var(--ink3);line-height:1.7;max-width:560px; }
+/* HERO */
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction:column; justify-content:flex-end;
+  padding: 0 48px 80px;
+  position: relative; overflow: hidden;
+}
+.hero-bg {
+  position: absolute; inset:0;
+  background: radial-gradient(ellipse 60% 70% at 80% 30%, rgba(200,169,110,0.12) 0%, transparent 60%),
+              radial-gradient(ellipse 40% 40% at 20% 70%, rgba(200,169,110,0.06) 0%, transparent 50%);
+}
+.hero-line {
+  position: absolute; top:0; left:48px; width:1px; height:100%;
+  background: linear-gradient(to bottom, transparent, var(--gold-border) 30%, var(--gold-border) 70%, transparent);
+}
+.hero-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(120px, 18vw, 220px);
+  font-weight: 300; color: rgba(200,169,110,0.06);
+  line-height: 1; position: absolute; right: -20px; bottom: 40px;
+  letter-spacing: -5px; pointer-events:none; user-select:none;
+}
+.hero-eyebrow {
+  font-size: 11px; letter-spacing: 4px; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 32px; position: relative;
+  display: flex; align-items:center; gap:16px;
+}
+.hero-eyebrow::before { content:''; width:40px; height:1px; background:var(--gold); }
+.hero-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(48px, 7vw, 96px);
+  font-weight: 300; line-height: 1.0;
+  color: var(--white); max-width: 800px;
+  position: relative; margin-bottom: 40px;
+}
+.hero-title em { font-style: italic; color: var(--gold2); }
+.hero-sub {
+  font-size: 15px; color: var(--muted); line-height: 1.8;
+  max-width: 440px; position: relative; margin-bottom: 60px;
+  font-weight: 300;
+}
+.hero-stats {
+  display: flex; gap: 0; position: relative;
+  border-top: 1px solid var(--muted2); padding-top: 48px;
+}
+.stat {
+  flex: 1; padding-right: 40px; border-right: 1px solid var(--muted2);
+  margin-right: 40px;
+}
+.stat:last-child { border-right:none; margin-right:0; }
+.stat-n {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 52px; font-weight: 300; color: var(--gold);
+  line-height: 1; margin-bottom: 8px;
+}
+.stat-n sup { font-size: 22px; vertical-align: top; margin-top: 10px; display: inline-block; }
+.stat-l { font-size: 11px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
 
-.problem { background:var(--white); }
-.problem-grid { display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;max-width:1100px;margin:60px auto 0; }
-.pain-list { display:flex;flex-direction:column;gap:20px; }
-.pain-item { display:flex;gap:16px;align-items:flex-start;padding:20px;background:var(--cream);border-radius:12px; }
-.pain-icon { font-size:24px;flex-shrink:0;margin-top:2px; }
-.pain-text { font-size:15px;line-height:1.6;color:var(--ink2); }
-.pain-text strong { color:var(--ink);font-weight:500; }
+/* DIVIDER */
+.divider {
+  display: flex; align-items:center; gap:24px;
+  padding: 0 48px; margin: 0;
+}
+.divider-line { flex:1; height:1px; background:var(--muted2); }
+.divider-text { font-size:10px; letter-spacing:4px; text-transform:uppercase; color:var(--gold); white-space:nowrap; }
 
-.how { background:var(--cream); }
-.flow { display:flex;align-items:stretch;gap:0;max-width:1100px;margin:60px auto 0;overflow-x:auto; }
-.flow-step { flex:1;min-width:180px;background:var(--white);padding:28px 20px;border-right:1px solid var(--bdr);position:relative; }
-.flow-step:last-child { border-right:none; }
-.flow-step::after { content:'→';position:absolute;right:-14px;top:50%;transform:translateY(-50%);font-size:20px;color:var(--green);z-index:1;background:var(--white);padding:4px; }
-.flow-step:last-child::after { display:none; }
-.flow-num { font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--ink3);margin-bottom:14px; }
-.flow-icon { font-size:32px;margin-bottom:14px;display:block; }
-.flow-title { font-size:15px;font-weight:500;margin-bottom:8px; }
-.flow-desc { font-size:13px;color:var(--ink3);line-height:1.6; }
+/* SECTIONS */
+.section { padding: 120px 48px; }
 
-.features { background:var(--ink); }
-.features .section-title { color:#fff; }
-.features .section-eyebrow { color:var(--green-light); }
-.features .section-sub { color:rgba(255,255,255,0.5); }
-.feat-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:2px;max-width:1100px;margin:60px auto 0; }
-.feat-card { background:rgba(255,255,255,0.04);padding:28px;border:1px solid rgba(255,255,255,0.07);transition:background 0.2s; }
-.feat-card:hover { background:rgba(255,255,255,0.07); }
-.feat-emoji { font-size:26px;margin-bottom:14px;display:block; }
-.feat-title { font-size:15px;font-weight:500;color:#fff;margin-bottom:8px; }
-.feat-desc { font-size:13px;color:rgba(255,255,255,0.45);line-height:1.6; }
+/* PROBLEM */
+.problem { background: var(--dark); }
+.s-head { margin-bottom: 80px; }
+.s-eyebrow { font-size:10px; letter-spacing:4px; text-transform:uppercase; color:var(--gold); margin-bottom:20px; display:flex; align-items:center; gap:16px; }
+.s-eyebrow::before { content:''; width:30px; height:1px; background:var(--gold); }
+.s-title { font-family:'Cormorant Garamond',serif; font-size:clamp(36px,5vw,64px); font-weight:300; line-height:1.05; max-width:640px; }
+.s-title em { font-style:italic; color:var(--gold2); }
 
-.roles { background:var(--white); }
-.roles-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1100px;margin:60px auto 0; }
-.role-card { border:1px solid var(--bdr);border-radius:16px;padding:28px 22px;display:flex;flex-direction:column;gap:14px; }
-.role-badge { display:inline-flex;align-items:center;gap:8px;background:var(--green-bg);color:var(--green);padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;width:fit-content; }
-.role-title { font-size:19px;font-weight:500; }
-.role-list { display:flex;flex-direction:column;gap:8px; }
-.role-item { display:flex;gap:10px;font-size:14px;color:var(--ink2);line-height:1.5; }
-.role-item::before { content:'✓';color:var(--green);font-weight:600;flex-shrink:0; }
+.pain-grid { display:grid; grid-template-columns:1fr 1fr; gap:2px; }
+.pain-card {
+  padding: 40px 36px;
+  background: var(--dark2);
+  border: 1px solid var(--muted2);
+  transition: border-color 0.3s;
+}
+.pain-card:hover { border-color: var(--gold-border); }
+.pain-icon { font-size:32px; margin-bottom:20px; display:block; }
+.pain-title { font-family:'Cormorant Garamond',serif; font-size:22px; font-weight:400; margin-bottom:12px; color:var(--white); }
+.pain-text { font-size:14px; color:var(--muted); line-height:1.8; font-weight:300; }
+.pain-stat { margin-top:20px; padding-top:20px; border-top:1px solid var(--muted2); display:flex; align-items:baseline; gap:8px; }
+.pain-stat-n { font-family:'Cormorant Garamond',serif; font-size:36px; color:var(--gold); font-weight:300; }
+.pain-stat-l { font-size:12px; color:var(--muted); letter-spacing:1px; }
 
-.pricing { background:var(--cream); }
-.price-card { max-width:520px;margin:60px auto 0;background:var(--ink);border-radius:20px;padding:48px 40px;text-align:center;position:relative;overflow:hidden; }
-.price-card::before { content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(26,102,64,0.3) 0%,transparent 60%); }
-.price-label { font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--green-light);margin-bottom:16px;position:relative; }
-.price-amount { font-family:'Playfair Display',serif;font-size:68px;font-weight:400;color:#fff;position:relative;line-height:1; }
-.price-amount sup { font-size:22px;vertical-align:top;margin-top:14px;display:inline-block;font-family:'Inter',sans-serif; }
-.price-period { font-size:14px;color:rgba(255,255,255,0.4);margin-top:8px;margin-bottom:32px;position:relative; }
-.price-features { display:flex;flex-direction:column;gap:12px;text-align:left;margin-bottom:36px;position:relative; }
-.price-feat { display:flex;gap:12px;font-size:14px;color:rgba(255,255,255,0.7); }
-.price-feat::before { content:'✓';color:var(--green-light);font-weight:600;flex-shrink:0; }
-.price-cta { width:100%;padding:16px;background:var(--green);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;position:relative; }
-.price-note { font-size:12px;color:rgba(255,255,255,0.3);margin-top:16px;position:relative; }
+/* HOW */
+.how { background: var(--black); }
+.steps { display:flex; flex-direction:column; gap:0; max-width:800px; margin:0 auto; }
+.step {
+  display:grid; grid-template-columns:80px 1fr;
+  gap:40px; padding:48px 0;
+  border-bottom:1px solid var(--muted2);
+  align-items:start;
+}
+.step:last-child { border-bottom:none; }
+.step-num {
+  font-family:'Cormorant Garamond',serif;
+  font-size:64px; font-weight:300; color:var(--gold-border);
+  line-height:1; padding-top:4px;
+}
+.step-icon { font-size:28px; margin-bottom:12px; display:block; }
+.step-title { font-family:'Cormorant Garamond',serif; font-size:28px; font-weight:400; margin-bottom:10px; color:var(--white); }
+.step-desc { font-size:14px; color:var(--muted); line-height:1.8; font-weight:300; }
 
-.cta-section { background:var(--green);padding:100px 40px;text-align:center; }
-.cta-section .section-title { color:#fff; }
-.cta-section p { color:rgba(255,255,255,0.7);font-size:16px;max-width:480px;margin:16px auto 40px;line-height:1.7; }
+/* FEATURES */
+.features { background: var(--dark); }
+.feat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; margin-top:80px; }
+.feat {
+  padding:40px 32px;
+  background:var(--dark2);
+  border:1px solid transparent;
+  transition:all 0.3s;
+}
+.feat:hover { border-color:var(--gold-border); background:var(--dark3); }
+.feat-icon { font-size:28px; margin-bottom:20px; display:block; }
+.feat-title { font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:400; margin-bottom:10px; }
+.feat-desc { font-size:13px; color:var(--muted); line-height:1.8; font-weight:300; }
 
-footer { background:var(--ink);padding:40px;text-align:center; }
-footer p { font-size:13px;color:rgba(255,255,255,0.3); }
+/* ROLES */
+.roles { background:var(--black); }
+.roles-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-top:80px; }
+.role {
+  padding:40px 32px;
+  border:1px solid var(--muted2);
+  position:relative; overflow:hidden;
+  transition:border-color 0.3s;
+}
+.role::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background:transparent; transition:background 0.3s;
+}
+.role:hover::before { background:var(--gold); }
+.role:hover { border-color:var(--gold-border); }
+.role-tag {
+  font-size:10px; letter-spacing:3px; text-transform:uppercase;
+  color:var(--gold); margin-bottom:20px; display:block;
+}
+.role-title { font-family:'Cormorant Garamond',serif; font-size:28px; font-weight:300; margin-bottom:24px; }
+.role-item { display:flex; gap:14px; font-size:13px; color:var(--muted); line-height:1.7; margin-bottom:10px; font-weight:300; }
+.role-item::before { content:'—'; color:var(--gold); flex-shrink:0; }
+
+/* PRICING */
+.pricing { background:var(--dark); }
+.price-wrap { max-width:600px; margin:80px auto 0; }
+.price-inner {
+  padding:64px;
+  border:1px solid var(--gold-border);
+  position:relative; overflow:hidden;
+  text-align:center;
+}
+.price-inner::before {
+  content:''; position:absolute; top:-100px; left:50%; transform:translateX(-50%);
+  width:300px; height:300px; border-radius:50%;
+  background:radial-gradient(circle, rgba(200,169,110,0.1) 0%, transparent 70%);
+  pointer-events:none;
+}
+.price-tag { font-size:10px; letter-spacing:4px; text-transform:uppercase; color:var(--gold); margin-bottom:24px; display:block; }
+.price-num {
+  font-family:'Cormorant Garamond',serif;
+  font-size:88px; font-weight:300; color:var(--white); line-height:1;
+  margin-bottom:8px;
+}
+.price-num sup { font-size:32px; vertical-align:top; margin-top:20px; display:inline-block; font-family:'Inter',sans-serif; color:var(--gold); }
+.price-period { font-size:12px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; margin-bottom:48px; }
+.price-list { text-align:left; margin-bottom:48px; display:flex; flex-direction:column; gap:14px; }
+.price-item { display:flex; gap:16px; font-size:14px; color:var(--muted); font-weight:300; }
+.price-item::before { content:'✦'; color:var(--gold); font-size:8px; flex-shrink:0; margin-top:4px; }
+.price-btn {
+  width:100%; padding:18px;
+  border:1px solid var(--gold);
+  background:transparent; color:var(--gold);
+  font-size:12px; letter-spacing:3px; text-transform:uppercase;
+  cursor:pointer; font-family:'Inter',sans-serif;
+  transition:all 0.3s;
+}
+.price-btn:hover { background:var(--gold); color:var(--black); }
+.price-note { font-size:11px; color:var(--muted2); margin-top:20px; letter-spacing:1px; }
+
+/* CTA */
+.cta { padding:160px 48px; text-align:center; position:relative; overflow:hidden; }
+.cta::before {
+  content:''; position:absolute; inset:0;
+  background:radial-gradient(ellipse 60% 60% at 50% 50%, rgba(200,169,110,0.08) 0%, transparent 70%);
+}
+.cta-title {
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(48px,7vw,96px); font-weight:300; line-height:1.0;
+  margin-bottom:24px; position:relative;
+}
+.cta-title em { font-style:italic; color:var(--gold2); }
+.cta-sub { font-size:15px; color:var(--muted); max-width:400px; margin:0 auto 56px; line-height:1.8; font-weight:300; position:relative; }
+.cta-btns { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; position:relative; }
+.cta-btn {
+  padding:16px 40px;
+  font-size:12px; letter-spacing:3px; text-transform:uppercase;
+  cursor:pointer; font-family:'Inter',sans-serif; font-weight:400;
+  text-decoration:none; display:flex; align-items:center; gap:12px;
+  transition:all 0.3s;
+}
+.cta-btn-wa { background:#25D366; color:#000; border:none; }
+.cta-btn-wa:hover { background:#1da851; }
+.cta-btn-tg { background:transparent; color:var(--gold); border:1px solid var(--gold); }
+.cta-btn-tg:hover { background:var(--gold-bg); }
+
+footer { padding:40px 48px; border-top:1px solid var(--muted2); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; }
+footer p { font-size:11px; color:var(--muted2); letter-spacing:2px; text-transform:uppercase; }
 
 @media(max-width:768px) {
-  nav { padding:16px 20px; }
-  section { padding:64px 20px; }
-  .hero { padding:100px 20px 60px; }
-  .hero-stats { gap:24px; }
-  .problem-grid,.roles-grid { grid-template-columns:1fr; }
-  .flow { flex-direction:column; }
-  .flow-step { border-right:none;border-bottom:1px solid var(--bdr); }
-  .flow-step::after { content:'↓';right:auto;left:50%;top:auto;bottom:-16px;transform:translateX(-50%); }
-  .feat-grid { grid-template-columns:1fr; }
-  .price-card { padding:32px 20px; }
-  .price-amount { font-size:52px; }
+  nav { padding:20px 24px; }
+  .hero { padding:0 24px 60px; }
+  .hero-line { left:24px; }
+  .section { padding:80px 24px; }
+  .divider { padding:0 24px; }
+  .hero-stats { flex-direction:column; gap:32px; }
+  .stat { border-right:none; padding-right:0; margin-right:0; border-bottom:1px solid var(--muted2); padding-bottom:32px; margin-bottom:0; }
+  .stat:last-child { border-bottom:none; padding-bottom:0; }
+  .pain-grid,.roles-grid,.feat-grid { grid-template-columns:1fr; }
+  .step { grid-template-columns:50px 1fr; gap:24px; }
+  .price-inner { padding:40px 28px; }
+  .cta { padding:100px 24px; }
+  footer { padding:32px 24px; }
+  .hero-num { display:none; }
 }
 
-@keyframes fadeUp { from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)} }
+/* Scroll reveal */
+.reveal { opacity:0; transform:translateY(32px); transition:opacity 0.7s ease, transform 0.7s ease; }
+.reveal.visible { opacity:1; transform:translateY(0); }
 </style>
 </head>
 <body>
 
 <nav>
-  <div class="nav-logo">QR<span>Menu</span></div>
-  <button class="nav-cta" onclick="document.querySelector('.cta-section').scrollIntoView({behavior:'smooth'})">Тамос гиред</button>
+  <div class="logo">QR Menu</div>
+  <button class="nav-btn" onclick="document.querySelector('.cta').scrollIntoView({behavior:'smooth'})">Тамос гиред</button>
 </nav>
 
 <!-- HERO -->
 <section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-line"></div>
+  <div class="hero-num">01</div>
+
   <div class="hero-eyebrow">Системаи навин барои ресторан</div>
-  <h1 class="hero-title">Меҳмон фармоиш медиҳад.<br><em>Ошпаз мепазад.</em><br>Шумо даромад мегиред.</h1>
-  <p class="hero-sub">Меню тавассути QR-код, монитори ошхона, идораи официантҳо ва пардохт — дар як система бидуни касса ва барномаҳои иловагӣ.</p>
+  <h1 class="hero-title">
+    Меҳмон фармоиш медиҳад.<br>
+    <em>Ошпаз мепазад.</em><br>
+    Шумо даромад мегиред.
+  </h1>
+  <p class="hero-sub">Меню тавассути QR-код, монитори ошхона, идораи официантҳо ва пардохт — дар як система.</p>
   <div class="hero-stats">
-    <div>
-      <div class="stat-num">3<span>дақ</span></div>
-      <div class="stat-label">аз сканер то фармоиш</div>
+    <div class="stat">
+      <div class="stat-n">3<sup>дақ</sup></div>
+      <div class="stat-l">аз сканер то фармоиш</div>
     </div>
-    <div>
-      <div class="stat-num">0<span>сомонӣ</span></div>
-      <div class="stat-label">барои меҳмон</div>
+    <div class="stat">
+      <div class="stat-n">0<sup>сом</sup></div>
+      <div class="stat-l">барои меҳмон</div>
     </div>
-    <div>
-      <div class="stat-num">15<span>+</span></div>
-      <div class="stat-label">миз дар як система</div>
+    <div class="stat">
+      <div class="stat-n">15<sup>+</sup></div>
+      <div class="stat-l">миз дар як система</div>
     </div>
   </div>
 </section>
+
+<div class="divider"><div class="divider-line"></div><div class="divider-text">Мушкилот</div><div class="divider-line"></div></div>
 
 <!-- PROBLEM -->
-<section class="problem">
-  <div class="section-eyebrow">Вазъияти шинос?</div>
-  <h2 class="section-title">Чӣ тавр пул дар<br>ресторани оддӣ гум мешавад</h2>
-  <div class="problem-grid">
-    <div class="pain-list">
-      <div class="pain-item">
-        <div class="pain-icon">⏳</div>
-        <div class="pain-text"><strong>Меҳмон официантро мемонад</strong> то фармоиш диҳад. Официант банд аст. Меҳмон хашмгин мешавад. Миз холӣ мемонад.</div>
-      </div>
-      <div class="pain-item">
-        <div class="pain-icon">📝</div>
-        <div class="pain-text"><strong>Фармоишҳои даҳонакӣ</strong> гум мешаванд, омехта мегарданд. Ошхона авлавиятро намедонад.</div>
-      </div>
-      <div class="pain-item">
-        <div class="pain-icon">💸</div>
-        <div class="pain-text"><strong>Пардохт дер мешавад</strong> — меҳмон ҳисоб мехоҳад, официантро мемонад, терминалро интизор мешавад.</div>
-      </div>
-      <div class="pain-item">
-        <div class="pain-icon">📊</div>
-        <div class="pain-text"><strong>Омори надорад</strong> — кӣ чӣ фармуд, кадом хӯрок маъмул аст, даромади рӯзона чӣ қадар аст.</div>
+<section class="section problem">
+  <div class="s-head reveal">
+    <div class="s-eyebrow">Вазъияти шинос?</div>
+    <h2 class="s-title">Чӣ тавр пул дар<br><em>ресторани оддӣ</em> гум мешавад</h2>
+  </div>
+  <div class="pain-grid">
+    <div class="pain-card reveal">
+      <span class="pain-icon">⏳</span>
+      <div class="pain-title">Интизории официант</div>
+      <p class="pain-text">Меҳмон официантро мекобад то фармоиш диҳад. Официант банд аст. Меҳмон хашмгин мешавад.</p>
+      <div class="pain-stat"><span class="pain-stat-n">7–12</span><span class="pain-stat-l">дақиқаи интизор</span></div>
+    </div>
+    <div class="pain-card reveal">
+      <span class="pain-icon">📝</span>
+      <div class="pain-title">Фармоишҳои даҳонакӣ</div>
+      <p class="pain-text">Фармоишҳо гум мешаванд, омехта мегарданд. Ошхона авлавиятро намедонад.</p>
+      <div class="pain-stat"><span class="pain-stat-n">3–5</span><span class="pain-stat-l">дақиқаи таъхир</span></div>
+    </div>
+    <div class="pain-card reveal">
+      <span class="pain-icon">💸</span>
+      <div class="pain-title">Пардохти суст</div>
+      <p class="pain-text">Меҳмон ҳисоб мехоҳад, официантро интизор мешавад, терминалро мемонад.</p>
+      <div class="pain-stat"><span class="pain-stat-n">5–10</span><span class="pain-stat-l">дақиқаи гумшуда</span></div>
+    </div>
+    <div class="pain-card reveal">
+      <span class="pain-icon">📊</span>
+      <div class="pain-title">Омори надорад</div>
+      <p class="pain-text">Кӣ чӣ фармуд, кадом хӯрок маъмул аст, даромади рӯзона чӣ қадар аст — маълум нест.</p>
+      <div class="pain-stat"><span class="pain-stat-n">0</span><span class="pain-stat-l">назорат</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><div class="divider-line"></div><div class="divider-text">Тарзи кор</div><div class="divider-line"></div></div>
+
+<!-- HOW -->
+<section class="section how">
+  <div class="s-head reveal">
+    <div class="s-eyebrow">Тарзи кор</div>
+    <h2 class="s-title">Осон. Зуд.<br><em>Бидуни ташвиш.</em></h2>
+  </div>
+  <div class="steps">
+    <div class="step reveal">
+      <div class="step-num">01</div>
+      <div>
+        <span class="step-icon">📱</span>
+        <div class="step-title">Меҳмон QR сканер мекунад</div>
+        <p class="step-desc">Дар ҳар миз QR-код мавҷуд аст. Меҳмон бо телефон сканер мекунад — бидуни барнома ва бақайдгирӣ.</p>
       </div>
     </div>
-    <div style="background:var(--ink);border-radius:20px;padding:36px;color:#fff;">
-      <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:20px;letter-spacing:1px;text-transform:uppercase;">Вақти гумшуда дар як миз</div>
-      <div style="display:flex;flex-direction:column;gap:20px;">
-        <div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-            <span style="font-size:14px;color:rgba(255,255,255,0.7);">Интизори официант</span>
-            <span style="font-size:14px;color:#fff;font-weight:500;">7–12 дақ</span>
-          </div>
-          <div style="background:rgba(255,255,255,0.1);border-radius:4px;height:4px;"><div style="background:var(--gold);width:75%;height:100%;border-radius:4px;"></div></div>
-        </div>
-        <div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-            <span style="font-size:14px;color:rgba(255,255,255,0.7);">Расонидани фармоиш</span>
-            <span style="font-size:14px;color:#fff;font-weight:500;">3–5 дақ</span>
-          </div>
-          <div style="background:rgba(255,255,255,0.1);border-radius:4px;height:4px;"><div style="background:var(--gold);width:45%;height:100%;border-radius:4px;"></div></div>
-        </div>
-        <div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-            <span style="font-size:14px;color:rgba(255,255,255,0.7);">Интизори ҳисоб</span>
-            <span style="font-size:14px;color:#fff;font-weight:500;">5–10 дақ</span>
-          </div>
-          <div style="background:rgba(255,255,255,0.1);border-radius:4px;height:4px;"><div style="background:var(--gold);width:65%;height:100%;border-radius:4px;"></div></div>
-        </div>
-        <div style="border-top:1px solid rgba(255,255,255,0.1);padding-top:20px;">
-          <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:8px;">Ҷамъи зарар дар як миз</div>
-          <div style="font-size:36px;font-weight:300;color:var(--gold);">15–27 дақ</div>
-          <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:4px;">= 2–3 гардиши иловагӣ дар рӯз</div>
-        </div>
+    <div class="step reveal">
+      <div class="step-num">02</div>
+      <div>
+        <span class="step-icon">🍽️</span>
+        <div class="step-title">Хӯрок интихоб мекунад</div>
+        <p class="step-desc">Менюро бо акс ва нарх мебинад. Ба сабад илова мекунад. Метавонад бо дӯст мубодила кунад.</p>
+      </div>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">03</div>
+      <div>
+        <span class="step-icon">👨‍🍳</span>
+        <div class="step-title">Ошхона фармоишро мегирад</div>
+        <p class="step-desc">Фавран дар монитори ошхона пайдо мешавад. Ошпаз рақами миз, исми меҳмон ва рӯйхати хӯрокро мебинад.</p>
+      </div>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">04</div>
+      <div>
+        <span class="step-icon">🔔</span>
+        <div class="step-title">Меҳмон огоҳӣ мегирад</div>
+        <p class="step-desc">Вақте фармоиш омода шуд — дар телефон ларзиш ва садо. Меҳмон бидуни официант медонад.</p>
+      </div>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">05</div>
+      <div>
+        <span class="step-icon">💳</span>
+        <div class="step-title">Пардохти зуд</div>
+        <p class="step-desc">Меҳмон тамоми ҳисобро мебинад, скриншоти чекро замима мекунад ва мерафтагӣ мешавад.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- HOW IT WORKS -->
-<section class="how">
-  <div style="max-width:1100px;margin:0 auto;">
-    <div class="section-eyebrow">Тарзи кор</div>
-    <h2 class="section-title">Осон. Зуд. Бидуни ташвиш.</h2>
-  </div>
-  <div class="flow">
-    <div class="flow-step">
-      <div class="flow-num">Қадами 1</div>
-      <span class="flow-icon">📱</span>
-      <div class="flow-title">Меҳмон QR сканер мекунад</div>
-      <div class="flow-desc">Дар ҳар миз QR-код мавҷуд аст. Меҳмон бо телефон сканер мекунад — бидуни барнома ва бақайдгирӣ.</div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-num">Қадами 2</div>
-      <span class="flow-icon">🍽️</span>
-      <div class="flow-title">Хӯрок интихоб мекунад</div>
-      <div class="flow-desc">Менюро бо акс ва нарх мебинад. Ба сабад илова мекунад. Метавонад бо дӯст мубодила кунад.</div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-num">Қадами 3</div>
-      <span class="flow-icon">👨‍🍳</span>
-      <div class="flow-title">Ошхона фармоишро мегирад</div>
-      <div class="flow-desc">Фавран дар монитори ошхона пайдо мешавад. Ошпаз рақами миз, исми меҳмон ва рӯйхати хӯрокро мебинад.</div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-num">Қадами 4</div>
-      <span class="flow-icon">🔔</span>
-      <div class="flow-title">Меҳмон огоҳӣ мегирад</div>
-      <div class="flow-desc">Вақте фармоиш омода шуд — дар телефон ларзиш ва садо. Меҳмон бидуни официант медонад.</div>
-    </div>
-    <div class="flow-step">
-      <div class="flow-num">Қадами 5</div>
-      <span class="flow-icon">💳</span>
-      <div class="flow-title">Пардохти зуд</div>
-      <div class="flow-desc">Меҳмон тамоми ҳисобро мебинад, пардохтро интихоб мекунад. Миз зуд озод мешавад.</div>
-    </div>
-  </div>
-</section>
+<div class="divider"><div class="divider-line"></div><div class="divider-text">Имкониятҳо</div><div class="divider-line"></div></div>
 
 <!-- FEATURES -->
-<section class="features">
-  <div class="section-eyebrow">Имкониятҳо</div>
-  <h2 class="section-title">Ҳама чизе ки рестораниатон лозим аст</h2>
-  <p class="section-sub">Системаи тайёр — дар як рӯз насб мешавад, бидуни барномачи кор мекунад.</p>
+<section class="section features">
+  <div class="s-head reveal">
+    <div class="s-eyebrow">Имкониятҳо</div>
+    <h2 class="s-title">Ҳама чизе ки<br><em>Ресторанатон лозим аст</em></h2>
+  </div>
   <div class="feat-grid">
-    <div class="feat-card">
-      <span class="feat-emoji">📲</span>
-      <div class="feat-title">QR-меню барои меҳмонон</div>
-      <div class="feat-desc">Бо телефон сканер мекунанд — меню бо акс кушода мешавад. Худашон фармоиш медиҳанд.</div>
-    </div>
-    <div class="feat-card">
-      <span class="feat-emoji">🖥️</span>
-      <div class="feat-title">Монитори ошхона</div>
-      <div class="feat-desc">Ҳамаи фармоишҳо дар як экран. Ҳолатҳо дар вақти воқеӣ. Бидуни коғаз ва ғалла.</div>
-    </div>
-    <div class="feat-card">
-      <span class="feat-emoji">👥</span>
-      <div class="feat-title">Минтақаҳои официантон</div>
-      <div class="feat-desc">Ҳар официант танҳо мизҳои худро мебинад. Огоҳиҳо фавран меоянд.</div>
-    </div>
-    <div class="feat-card">
-      <span class="feat-emoji">🛍️</span>
-      <div class="feat-title">Фармоишҳои бурданӣ</div>
-      <div class="feat-desc">Меҳмон "бурданӣ" мегузорад — ошхона фавран мебинад ки бояд бастабандӣ кунад.</div>
-    </div>
-    <div class="feat-card">
-      <span class="feat-emoji">👨‍👩‍👧</span>
-      <div class="feat-title">Фармоишҳои якҷоя</div>
-      <div class="feat-desc">Меҳмон пайванд мефиристад — дӯст ё зан хӯрокҳои худро ба ҳисоби умумӣ илова мекунад.</div>
-    </div>
-    <div class="feat-card">
-      <span class="feat-emoji">📱</span>
-      <div class="feat-title">Пардохт тавассути СБП</div>
-      <div class="feat-desc">Меҳмон барномаи бонкии худро мустақиман аз меню кушода пардохт мекунад.</div>
-    </div>
-    <div class="feat-card">
-      <span class="feat-emoji">📊</span>
-      <div class="feat-title">Омор</div>
-      <div class="feat-desc">Даромади рӯзона, хӯрокҳои маъмул, таърихи фармоишҳо — ҳама дар як ҷой.</div>
-    </div>
-    <div class="feat-card">
-      <span class="feat-emoji">🍽️</span>
-      <div class="feat-title">Идораи меню</div>
-      <div class="feat-desc">Хӯрок бо акс илова кунед, вақте тамом шуд пинҳон кунед, нарх тағйир диҳед — аз телефон.</div>
-    </div>
-    <div class="feat-card">
-      <span class="feat-emoji">🔔</span>
-      <div class="feat-title">Садо ва ларзиш</div>
-      <div class="feat-desc">Вақте фармоиш омода шуд — телефони меҳмон меларзад ва садо медиҳад. Официант лозим нест.</div>
-    </div>
+    <div class="feat reveal"><span class="feat-icon">📲</span><div class="feat-title">QR-меню барои меҳмонон</div><p class="feat-desc">Бо телефон сканер мекунанд — меню бо акс кушода мешавад. Худашон фармоиш медиҳанд.</p></div>
+    <div class="feat reveal"><span class="feat-icon">🖥️</span><div class="feat-title">Монитори ошхона</div><p class="feat-desc">Ҳамаи фармоишҳо дар як экран. Ҳолатҳо дар вақти воқеӣ. Бидуни коғаз.</p></div>
+    <div class="feat reveal"><span class="feat-icon">👥</span><div class="feat-title">Минтақаҳои официантон</div><p class="feat-desc">Ҳар официант танҳо мизҳои худро мебинад. Огоҳиҳо фавран меоянд.</p></div>
+    <div class="feat reveal"><span class="feat-icon">🛍️</span><div class="feat-title">Фармоишҳои бурданӣ</div><p class="feat-desc">Меҳмон "бурданӣ" мегузорад — ошхона фавран мебинад ки бояд бастабандӣ кунад.</p></div>
+    <div class="feat reveal"><span class="feat-icon">👨‍👩‍👧</span><div class="feat-title">Фармоишҳои якҷоя</div><p class="feat-desc">Меҳмон пайванд мефиристад — дӯст ё зан хӯрокҳои худро ба ҳисоби умумӣ илова мекунад.</p></div>
+    <div class="feat reveal"><span class="feat-icon">🧾</span><div class="feat-title">Чеки скриншот</div><p class="feat-desc">Меҳмон скриншоти пардохтро замима мекунад — официант тафтиш мекунад ва мизро мебандад.</p></div>
+    <div class="feat reveal"><span class="feat-icon">📊</span><div class="feat-title">Омор</div><p class="feat-desc">Даромади рӯзона, хӯрокҳои маъмул, таърихи фармоишҳо — ҳама дар як ҷой.</p></div>
+    <div class="feat reveal"><span class="feat-icon">🍽️</span><div class="feat-title">Идораи меню</div><p class="feat-desc">Хӯрок бо акс илова кунед, нарх тағйир диҳед — аз телефон, дар ҳар вақт.</p></div>
+    <div class="feat reveal"><span class="feat-icon">🔔</span><div class="feat-title">Садо ва ларзиш</div><p class="feat-desc">Вақте фармоиш омода шуд — телефони меҳмон меларзад. Официант лозим нест.</p></div>
   </div>
 </section>
+
+<div class="divider"><div class="divider-line"></div><div class="divider-text">Барои кормандон</div><div class="divider-line"></div></div>
 
 <!-- ROLES -->
-<section class="roles">
-  <div class="section-eyebrow">Барои тамоми кормандон</div>
-  <h2 class="section-title">Ҳар кас кори худро мебинад</h2>
+<section class="section roles">
+  <div class="s-head reveal">
+    <div class="s-eyebrow">Барои тамоми кормандон</div>
+    <h2 class="s-title">Ҳар кас<br><em>кори худро мебинад</em></h2>
+  </div>
   <div class="roles-grid">
-    <div class="role-card">
-      <div class="role-badge">📱 Меҳмон</div>
+    <div class="role reveal">
+      <span class="role-tag">Меҳмон</span>
       <div class="role-title">Фармоиши осон</div>
-      <div class="role-list">
-        <div class="role-item">QR сканер мекунад — меню кушода мешавад</div>
-        <div class="role-item">Хӯрокҳоро бо акс интихоб мекунад</div>
-        <div class="role-item">Ҳолати фармоишро пайгирӣ мекунад</div>
-        <div class="role-item">Вақти омодагӣ огоҳӣ мегирад</div>
-        <div class="role-item">Тавассути СБП ё нақд пардохт мекунад</div>
-        <div class="role-item">Менюро бо дӯстон мубодила мекунад</div>
-      </div>
+      <div class="role-item">QR сканер мекунад — меню кушода мешавад</div>
+      <div class="role-item">Хӯрокҳоро бо акс интихоб мекунад</div>
+      <div class="role-item">Ҳолати фармоишро пайгирӣ мекунад</div>
+      <div class="role-item">Вақти омодагӣ огоҳӣ мегирад</div>
+      <div class="role-item">Скриншоти чек замима мекунад</div>
+      <div class="role-item">Менюро бо дӯстон мубодила мекунад</div>
     </div>
-    <div class="role-card" style="border-color:var(--green);background:var(--green-bg);">
-      <div class="role-badge" style="background:var(--green);color:#fff;">👨‍🍳 Ошхона</div>
+    <div class="role reveal" style="border-color:var(--gold-border);">
+      <span class="role-tag">Ошхона</span>
       <div class="role-title">Монитори равшан</div>
-      <div class="role-list">
-        <div class="role-item">Ҳамаи фармоишҳо дар як экран</div>
-        <div class="role-item">Нав → Тайёр мешавад → Омода</div>
-        <div class="role-item">Аломатҳои "Бурданӣ" ва "Иловагӣ"</div>
-        <div class="role-item">Исми официант дар фармоиш</div>
-        <div class="role-item">Огоҳии пардохт</div>
-        <div class="role-item">Таърих барои ҳар давра</div>
-      </div>
+      <div class="role-item">Ҳамаи фармоишҳо дар як экран</div>
+      <div class="role-item">Нав → Тайёр мешавад → Омода</div>
+      <div class="role-item">Аломатҳои "Бурданӣ" ва "Иловагӣ"</div>
+      <div class="role-item">Исми официант дар фармоиш</div>
+      <div class="role-item">Огоҳии пардохт бо чек</div>
+      <div class="role-item">Таърих барои ҳар давра</div>
     </div>
-    <div class="role-card">
-      <div class="role-badge">🧑‍💼 Официант</div>
+    <div class="role reveal">
+      <span class="role-tag">Официант</span>
       <div class="role-title">Минтақаи худ</div>
-      <div class="role-list">
-        <div class="role-item">Танҳо мизҳои худро мебинад</div>
-        <div class="role-item">Огоҳиҳо бо ларзиш</div>
-        <div class="role-item">Фармоишро дастӣ қабул мекунад</div>
-        <div class="role-item">Расонидани хӯрокро қайд мекунад</div>
-        <div class="role-item">Пардохт қабул мекунад ва мизро мебандад</div>
-        <div class="role-item">Вуруд бо логин ва парол</div>
-      </div>
+      <div class="role-item">Танҳо мизҳои худро мебинад</div>
+      <div class="role-item">Огоҳиҳо бо ларзиш ва садо</div>
+      <div class="role-item">Фармоишро дастӣ қабул мекунад</div>
+      <div class="role-item">Расонидани хӯрокро қайд мекунад</div>
+      <div class="role-item">Чеки меҳмонро тафтиш мекунад</div>
+      <div class="role-item">Мизро мебандад</div>
     </div>
   </div>
 </section>
 
+<div class="divider"><div class="divider-line"></div><div class="divider-text">Арзиш</div><div class="divider-line"></div></div>
+
 <!-- PRICING -->
-<section class="pricing">
-  <div style="text-align:center;">
-    <div class="section-eyebrow">Арзиш</div>
-    <h2 class="section-title">Нархи шаффоф</h2>
-    <p class="section-sub" style="margin:0 auto;">Ягон пардохти пинҳонӣ нест. Фоизи даромад гирифта намешавад.</p>
+<section class="section pricing">
+  <div class="s-head reveal" style="text-align:center;">
+    <div class="s-eyebrow" style="justify-content:center;">Арзиш</div>
+    <h2 class="s-title" style="margin:0 auto; text-align:center;">Нархи<br><em>шаффоф</em></h2>
   </div>
-  <div class="price-card">
-    <div class="price-label">Барои як ресторан</div>
-    <div class="price-amount"><sup>аз </sup>5 000<sup> ₽</sup></div>
-    <div class="price-period">дар як моҳ</div>
-    <div class="price-features">
-      <div class="price-feat">Насб ва танзим барои рестораниатон дар 1 рӯз</div>
-      <div class="price-feat">QR-кодҳо барои ҳамаи мизҳо</div>
-      <div class="price-feat">Омӯзиши кормандон (1–2 соат)</div>
-      <div class="price-feat">Бор кардани менюи шумо бо акс</div>
-      <div class="price-feat">Танзими минтақаҳои официантон</div>
-      <div class="price-feat">Пайвасткунии СБП-и бонки шумо</div>
-      <div class="price-feat">Дастгирӣ ва навсозиҳо</div>
+  <div class="price-wrap reveal">
+    <div class="price-inner">
+      <span class="price-tag">Барои як ресторан</span>
+      <div class="price-num"><sup>аз </sup>5 000<sup> ₽</sup></div>
+      <div class="price-period">дар як моҳ</div>
+      <div class="price-list">
+        <div class="price-item">Насб ва танзим барои Ресторанатон дар 1 рӯз</div>
+        <div class="price-item">QR-кодҳо барои ҳамаи мизҳо</div>
+        <div class="price-item">Омӯзиши кормандон</div>
+        <div class="price-item">Бор кардани менюи шумо бо акс</div>
+        <div class="price-item">Танзими минтақаҳои официантон</div>
+        <div class="price-item">Дастгирӣ ва навсозиҳо</div>
+        <div class="price-item">Моҳи аввал ройгон</div>
+      </div>
+      <button class="price-btn" onclick="document.querySelector('.cta').scrollIntoView({behavior:'smooth'})">Шартҳоро муҳокима кунем</button>
+      <p class="price-note">Бекор кардан дар ҳар вақт · Бидуни пардохти пинҳонӣ</p>
     </div>
-    <button class="price-cta" onclick="document.querySelector('.cta-section').scrollIntoView({behavior:'smooth'})">Шартҳоро муҳокима кунем</button>
-    <p class="price-note">Бекор кардан дар ҳар вақт · Бидуни пардохти пинҳонӣ</p>
   </div>
 </section>
 
 <!-- CTA -->
-<section class="cta-section">
-  <h2 class="section-title" style="font-family:'Playfair Display',serif;font-weight:400;">Омодаед дар<br>рестораниатон оғоз кунем?</h2>
-  <p>Бо мо тамос гиред — системаро барои рестораниатон дар як рӯз танзим мекунем. Моҳи аввал ройгон.</p>
-  <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
-    <a href="https://wa.me/qr/62U5UBVPNLKIP1" target="_blank" style="padding:16px 32px;background:#25D366;color:#fff;border-radius:8px;font-size:15px;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:10px;">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.117.554 4.103 1.523 5.83L.057 23.854a.5.5 0 0 0 .606.61l6.208-1.49A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.656-.51-5.176-1.4l-.36-.214-3.862.927.972-3.75-.235-.374A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+<section class="cta">
+  <h2 class="cta-title reveal">Омодаед оғоз<br><em>кунем?</em></h2>
+  <p class="cta-sub reveal">Бо мо тамос гиред — системаро барои Ресторанатон дар як рӯз танзим мекунем.</p>
+  <div class="cta-btns reveal">
+    <a href="https://wa.me/qr/62U5UBVPNLKIP1" target="_blank" class="cta-btn cta-btn-wa">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.117.554 4.103 1.523 5.83L.057 23.854a.5.5 0 0 0 .606.61l6.208-1.49A11.945 11.945 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.656-.51-5.176-1.4l-.36-.214-3.862.927.972-3.75-.235-.374A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
       WhatsApp
     </a>
-    <a href="https://t.me/KhisravS" target="_blank" style="padding:16px 32px;background:#229ED9;color:#fff;border-radius:8px;font-size:15px;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:10px;">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+    <a href="https://t.me/KhisravS" target="_blank" class="cta-btn cta-btn-tg">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
       Telegram
     </a>
   </div>
 </section>
 
 <footer>
-  <p>QRMenu — Системаи автоматикунонии ресторанҳо · 2026</p>
+  <p>QR Menu — Системаи автоматикунонии ресторанҳо</p>
+  <p>© 2026</p>
 </footer>
 
 <script>
 const observer = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
-    if(entry.isIntersecting) {
-      entry.target.style.opacity='1';
-      entry.target.style.transform='translateY(0)';
-    }
+    if(entry.isIntersecting) entry.target.classList.add('visible');
   });
-}, { threshold:0.1 });
+}, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
 
-document.querySelectorAll('.feat-card,.role-card,.pain-item,.flow-step').forEach(el => {
-  el.style.opacity='0';
-  el.style.transform='translateY(20px)';
-  el.style.transition='opacity 0.5s ease, transform 0.5s ease';
-  observer.observe(el);
-});
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 </script>
 </body>
 </html>
