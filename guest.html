@@ -168,6 +168,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     </div>
     <div style="padding:0 20px 32px;display:flex;flex-direction:column;gap:10px;">
       <button class="btn-green" onclick="addMoreItems()"><i class="ti ti-plus"></i> Добавить к заказу</button>
+      <button class="btn-outline" id="takeaway-btn" onclick="toggleTakeaway()"><i class="ti ti-shopping-bag"></i> <span id="takeaway-label">С собой</span></button>
       <button class="btn-outline" onclick="showSplit()"><i class="ti ti-receipt"></i> Оплата</button>
     </div>
   </div>
@@ -269,6 +270,10 @@ function showMenu() { showScreen('menu'); renderMenu(currentCat); }
 function showCart() { 
   showScreen('cart');
   document.getElementById('cart-title').textContent = isAddingMore ? 'Добавить к заказу' : 'Мой заказ';
+  // Всегда сбрасываем кнопку при открытии корзины
+  const btn = document.getElementById('order-btn');
+  btn.disabled = false;
+  btn.innerHTML = (isAddingMore ? 'Добавить к заказу' : 'Оформить заказ') + ' <i class="ti ti-send"></i>';
   renderCart(); 
 }
 
@@ -403,7 +408,11 @@ async function handleOrderBtn() {
 function addMoreItems(){
   isAddingMore=true;
   cart={};
+  isTakeaway=false;
   saveSession(true);
+  // Сбрасываем кнопку
+  const btn = document.getElementById('order-btn');
+  if(btn) { btn.disabled=false; btn.innerHTML='Добавить к заказу <i class="ti ti-send"></i>'; }
   showScreen('menu');
   renderMenu(currentCat||'all');
 }
@@ -463,6 +472,28 @@ function showSplitDetail(type) {
   document.getElementById('split-detail').style.display='block';
 }
 
+let isTakeaway = false;
+
+async function toggleTakeaway() {
+  if(!currentOrderId) return;
+  isTakeaway = !isTakeaway;
+  const btn = document.getElementById('takeaway-btn');
+  const label = document.getElementById('takeaway-label');
+  if(isTakeaway) {
+    btn.style.borderColor = 'var(--green)';
+    btn.style.color = 'var(--green-light)';
+    label.textContent = 'С собой ✓';
+  } else {
+    btn.style.borderColor = '';
+    btn.style.color = '';
+    label.textContent = 'С собой';
+  }
+  await fetch(API+'/api/orders/'+currentOrderId, {
+    method:'PUT', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({is_takeaway: isTakeaway})
+  });
+}
+
 async function restoreSession() {
   const saved=localStorage.getItem(SESSION_KEY);
   if(!saved) return;
@@ -489,6 +520,18 @@ async function restoreSession() {
 }
 
 restoreSession();
+
+// Принудительно сбрасываем кнопку каждые 500мс пока корзина видна
+setInterval(() => {
+  const cartScreen = document.getElementById('screen-cart');
+  if(cartScreen && cartScreen.classList.contains('active')) {
+    const btn = document.getElementById('order-btn');
+    if(btn && btn.disabled && !btn.innerHTML.includes('spinner')) {
+      btn.disabled = false;
+      btn.innerHTML = (isAddingMore ? 'Добавить к заказу' : 'Оформить заказ') + ' <i class="ti ti-send"></i>';
+    }
+  }
+}, 500);
 </script>
 </body>
 </html>
