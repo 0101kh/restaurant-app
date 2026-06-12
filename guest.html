@@ -106,6 +106,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgr
 <div id="screen-welcome" class="screen active">
   <div class="welcome-bg">
     <div class="logo-mark"><i class="ti ti-tools-kitchen-2" style="font-size:28px;color:var(--green-light);"></i></div>
+    <div style="font-size:13px;color:var(--green-light);text-align:center;margin-bottom:8px;font-weight:500;" id="restaurant-name-display"></div>
     <div class="table-chip" id="welcome-chip"><i class="ti ti-armchair" style="font-size:12px;"></i> Стол № <span id="table-welcome">1</span></div>
     <h1 style="font-size:38px;font-weight:500;text-align:center;line-height:1.1;margin-bottom:10px;" id="welcome-title">Добро<br>пожаловать</h1>
     <p style="font-size:14px;color:var(--txt2);text-align:center;margin-bottom:48px;line-height:1.6;" id="welcome-sub">Введите ваше имя чтобы открыть меню</p>
@@ -257,6 +258,8 @@ if(IS_SHARED) {
 }
 
 const SESSION_KEY = 'rst_v3_t' + TABLE_NUM + (IS_SHARED ? '_s' : '');
+const restaurantName = localStorage.getItem('restaurant_name') || '';
+if(restaurantName) document.getElementById('restaurant-name-display').textContent = restaurantName;
 
 let MENU = [];
 let cart = {};

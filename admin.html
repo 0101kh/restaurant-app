@@ -36,6 +36,21 @@ textarea { resize:vertical;min-height:80px; }
 </style>
 </head>
 <body>
+<!-- Экран входа -->
+<div id="login-screen" style="display:none;position:fixed;inset:0;background:#eeecea;z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px;">
+  <div style="background:#fff;border-radius:16px;padding:32px 24px;width:100%;max-width:360px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.1);">
+    <div style="width:64px;height:64px;border-radius:50%;background:#d4ede0;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+      <i class="ti ti-lock" style="font-size:28px;color:#1a7a4a;"></i>
+    </div>
+    <h2 style="font-size:20px;font-weight:500;margin-bottom:6px;">Панель управления</h2>
+    <p style="font-size:14px;color:#888;margin-bottom:24px;">Введите пароль для входа</p>
+    <input type="password" id="admin-password" placeholder="Пароль" style="width:100%;padding:14px 16px;font-size:16px;border:1px solid rgba(0,0,0,0.22);border-radius:10px;background:#fff;outline:none;font-family:inherit;margin-bottom:12px;text-align:center;letter-spacing:4px;" onkeydown="if(event.key==='Enter')checkPassword()" />
+    <button onclick="checkPassword()" style="width:100%;padding:14px;background:#1a7a4a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;">Войти</button>
+    <div id="login-error" style="display:none;color:#A32D2D;font-size:13px;margin-top:10px;">Неверный пароль</div>
+  </div>
+</div>
+
+<div id="main-content" style="display:none;">
 <div class="wrap">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
     <div>
@@ -43,8 +58,10 @@ textarea { resize:vertical;min-height:80px; }
       <h1 style="font-size:22px;font-weight:500;">Меню ресторана</h1>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn-sec" id="tab-menu-btn" onclick="switchAdminTab('menu')"><i class="ti ti-tools-kitchen-2"></i> Меню</button>
+      <button class="btn-sec" id="tab-stats-btn" onclick="switchAdminTab('stats')"><i class="ti ti-chart-bar"></i> Статистика</button>
       <button class="btn-sec" onclick="openCatModal()"><i class="ti ti-category"></i> Категории</button>
-      <button class="btn-main" onclick="openModal()"><i class="ti ti-plus"></i> Добавить блюдо</button>
+      <button class="btn-main" id="add-dish-btn" onclick="openModal()"><i class="ti ti-plus"></i> Добавить блюдо</button>
     </div>
   </div>
 
@@ -52,6 +69,55 @@ textarea { resize:vertical;min-height:80px; }
   <div id="cat-filter" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;"></div>
 
   <div id="menu-list" style="display:flex;flex-direction:column;gap:12px;"></div>
+</div>
+
+<!-- Stats section -->
+<div id="stats-section" style="display:none;max-width:760px;margin:0 auto;padding:0 16px 80px;">
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px;">
+    <div style="background:#fff;border-radius:14px;padding:16px;text-align:center;">
+      <div style="font-size:28px;font-weight:500;color:#1a7a4a;" id="stat-today-orders">—</div>
+      <div style="font-size:12px;color:#888;margin-top:4px;">Заказов сегодня</div>
+    </div>
+    <div style="background:#fff;border-radius:14px;padding:16px;text-align:center;">
+      <div style="font-size:28px;font-weight:500;color:#1a7a4a;" id="stat-today-revenue">—</div>
+      <div style="font-size:12px;color:#888;margin-top:4px;">Выручка сегодня</div>
+    </div>
+    <div style="background:#fff;border-radius:14px;padding:16px;text-align:center;">
+      <div style="font-size:28px;font-weight:500;" id="stat-total-orders">—</div>
+      <div style="font-size:12px;color:#888;margin-top:4px;">Всего заказов</div>
+    </div>
+    <div style="background:#fff;border-radius:14px;padding:16px;text-align:center;">
+      <div style="font-size:28px;font-weight:500;" id="stat-total-revenue">—</div>
+      <div style="font-size:12px;color:#888;margin-top:4px;">Общая выручка</div>
+    </div>
+  </div>
+  <div style="background:#fff;border-radius:14px;padding:16px;margin-bottom:16px;">
+    <div style="font-size:15px;font-weight:500;margin-bottom:14px;">🏆 Популярные блюда</div>
+    <div id="stat-top-items"></div>
+  </div>
+  <div style="background:#fff;border-radius:14px;padding:16px;">
+    <div style="font-size:15px;font-weight:500;margin-bottom:14px;">📋 Последние заказы</div>
+    <div id="stat-recent-orders"></div>
+  </div>
+  <div style="background:#fff;border-radius:14px;padding:16px;margin-top:16px;">
+    <div style="font-size:15px;font-weight:500;margin-bottom:14px;">⚙️ Настройки</div>
+    <div style="font-size:13px;color:#888;margin-bottom:6px;">Название ресторана</div>
+    <div style="display:flex;gap:8px;">
+      <input type="text" id="restaurant-name-input" placeholder="Например: Чайхана Восток" style="flex:1;" />
+      <button class="btn-main" onclick="saveRestaurantName()"><i class="ti ti-check"></i> Сохранить</button>
+    </div>
+    <div style="font-size:12px;color:#888;margin-top:8px;">Название отображается на экране приветствия для гостей</div>
+    <div style="margin-top:16px;padding-top:16px;border-top:0.5px solid rgba(0,0,0,0.1);">
+      <div style="font-size:13px;color:#888;margin-bottom:6px;">Сменить пароль администратора</div>
+      <div style="display:flex;gap:8px;">
+        <input type="password" id="new-password-input" placeholder="Новый пароль" style="flex:1;" />
+        <button class="btn-main" onclick="changePassword()"><i class="ti ti-lock"></i> Сменить</button>
+      </div>
+    </div>
+    <div style="margin-top:16px;padding-top:16px;border-top:0.5px solid rgba(0,0,0,0.1);">
+      <button class="btn-danger" onclick="logout()" style="width:100%;justify-content:center;"><i class="ti ti-logout"></i> Выйти из панели</button>
+    </div>
+  </div>
 </div>
 
 <!-- Модал: блюдо -->
@@ -110,7 +176,41 @@ textarea { resize:vertical;min-height:80px; }
   </div>
 </div>
 
+</div><!-- end wrap -->
+</div><!-- end main-content -->
+
 <script>
+const ADMIN_PASSWORD = '1234'; // Пароль — можно поменять
+
+function checkPassword() {
+  const pwd = document.getElementById('admin-password').value;
+  const correctPwd = localStorage.getItem('admin_custom_password') || ADMIN_PASSWORD;
+  if(pwd === correctPwd) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('main-content').style.display = 'block';
+    localStorage.setItem('admin_auth', correctPwd);
+    loadMenu();
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+    document.getElementById('admin-password').value = '';
+    document.getElementById('admin-password').focus();
+  }
+}
+
+// Проверяем авторизацию при загрузке
+window.onload = function() {
+  const saved = localStorage.getItem('admin_auth');
+  const correctPwd = localStorage.getItem('admin_custom_password') || ADMIN_PASSWORD;
+  if(saved === correctPwd || saved === ADMIN_PASSWORD) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('main-content').style.display = 'block';
+    loadMenu();
+  } else {
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('main-content').style.display = 'none';
+  }
+};
+
 const API = 'https://restaurant-api-production-4fdd.up.railway.app';
 const GITHUB_USER = '0101kh';
 const GITHUB_REPO = 'restaurant-app';
@@ -138,6 +238,101 @@ function getCatColor(id) {
   const textColors = ['#854F0B','#3B6D11','#185FA5','#145e38','#6A1B9A','#0D47A1','#E65100','#33691E'];
   const idx = categories.findIndex(c=>c.id===id) % colors.length;
   return {bg: colors[idx], color: textColors[idx]};
+}
+
+function saveRestaurantName() {
+  const name = document.getElementById('restaurant-name-input').value.trim();
+  localStorage.setItem('restaurant_name', name);
+  alert('Название сохранено!');
+}
+
+function changePassword() {
+  const newPwd = document.getElementById('new-password-input').value.trim();
+  if(!newPwd) { alert('Введите новый пароль'); return; }
+  localStorage.setItem('admin_custom_password', newPwd);
+  alert('Пароль изменён!');
+  document.getElementById('new-password-input').value='';
+}
+
+function logout() {
+  localStorage.removeItem('admin_auth');
+  location.reload();
+}
+
+function switchAdminTab(tab) {
+  const menuSection = document.querySelector('.wrap');
+  const statsSection = document.getElementById('stats-section');
+  const addBtn = document.getElementById('add-dish-btn');
+  if(tab==='menu') {
+    menuSection.style.display='block';
+    statsSection.style.display='none';
+    addBtn.style.display='inline-flex';
+  } else {
+    menuSection.style.display='none';
+    statsSection.style.display='block';
+    addBtn.style.display='none';
+    loadStats();
+  }
+}
+
+async function loadStats() {
+  // Set restaurant name input value
+  const rName = localStorage.getItem('restaurant_name') || '';
+  const rInput = document.getElementById('restaurant-name-input');
+  if(rInput) rInput.value = rName;
+  
+  try {
+    const [activeRes, historyRes] = await Promise.all([
+      fetch(API+'/api/orders/active'),
+      fetch(API+'/api/orders/history')
+    ]);
+    const active = await activeRes.json();
+    const history = await historyRes.json();
+    const allOrders = [...active, ...history];
+
+    const today = new Date().toDateString();
+    const todayOrders = allOrders.filter(o => new Date(o.created_at).toDateString()===today);
+    const todayRevenue = todayOrders.reduce((s,o)=>(o.items||[]).reduce((ss,i)=>ss+i.price*(i.qty||1),0)+s,0);
+    const totalRevenue = allOrders.reduce((s,o)=>(o.items||[]).reduce((ss,i)=>ss+i.price*(i.qty||1),0)+s,0);
+
+    document.getElementById('stat-today-orders').textContent = todayOrders.length;
+    document.getElementById('stat-today-revenue').textContent = todayRevenue.toLocaleString('ru')+' ₽';
+    document.getElementById('stat-total-orders').textContent = allOrders.length;
+    document.getElementById('stat-total-revenue').textContent = totalRevenue.toLocaleString('ru')+' ₽';
+
+    // Топ блюд
+    const itemCount = {};
+    allOrders.forEach(o=>(o.items||[]).forEach(i=>{
+      itemCount[i.name]=(itemCount[i.name]||0)+(i.qty||1);
+    }));
+    const topItems = Object.entries(itemCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    document.getElementById('stat-top-items').innerHTML = topItems.length
+      ? topItems.map(([name,qty],i)=>`
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:0.5px solid rgba(0,0,0,0.08);">
+          <span style="font-size:14px;">${i+1}. ${name}</span>
+          <span style="font-size:13px;font-weight:500;color:#1a7a4a;">${qty} раз</span>
+        </div>`).join('')
+      : '<div style="color:#888;font-size:14px;">Нет данных</div>';
+
+    // Последние заказы
+    const recent = allOrders.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,10);
+    document.getElementById('stat-recent-orders').innerHTML = recent.length
+      ? recent.map(o=>{
+          const total=(o.items||[]).reduce((s,i)=>s+i.price*(i.qty||1),0);
+          const time=new Date(o.created_at).toLocaleString('ru',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+          const statusLabel={new:'Новый',cooking:'Готовится',ready:'Готово',done:'Выдан',cancelled:'Отменён'}[o.status]||o.status;
+          return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:0.5px solid rgba(0,0,0,0.08);">
+            <div>
+              <div style="font-size:14px;font-weight:500;">${o.guest_name} · Стол ${o.table_number}</div>
+              <div style="font-size:12px;color:#888;">${time} · ${statusLabel}</div>
+            </div>
+            <div style="font-size:15px;font-weight:500;color:#1a7a4a;">${total} ₽</div>
+          </div>`;
+        }).join('')
+      : '<div style="color:#888;font-size:14px;">Нет данных</div>';
+  } catch(e) {
+    console.error(e);
+  }
 }
 
 async function loadMenu() {
@@ -235,13 +430,9 @@ function previewFromUrl(url) {
 }
 
 async function uploadToGitHub(file) {
-  const GITHUB_TOKEN = localStorage.getItem('github_token');
-  if(!GITHUB_TOKEN) {
-    const token = prompt('Введите GitHub Personal Access Token для загрузки фото:\n\n(github.com → Settings → Developer settings → Personal access tokens → Generate new token → выбери "repo")');
-    if(!token) return null;
-    localStorage.setItem('github_token', token);
-  }
-  const tok = localStorage.getItem('github_token');
+  const GITHUB_TOKEN = localStorage.getItem('github_token') || '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';
+  const tok = GITHUB_TOKEN;
+  if(!tok) { alert('Токен не настроен'); return null; }
   const reader = new FileReader();
   const b64 = await new Promise(res=>{reader.onload=e=>res(e.target.result.split(',')[1]);reader.readAsDataURL(file);});
   const fname = Date.now()+'.'+file.name.split('.').pop();
@@ -341,7 +532,6 @@ function removeCategory(id) {
   renderFilter();
 }
 
-loadMenu();
 </script>
 </body>
 </html>
