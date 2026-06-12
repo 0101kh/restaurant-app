@@ -7,10 +7,11 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.3.0/dist/tabler-icons.min.css">
 <style>
 * { box-sizing:border-box;margin:0;padding:0; }
-:root { --acc:#1a7a4a;--acc-bg:#d4ede0;--acc-dk:#145e38;--bg:#fff;--bg2:#f5f5f3;--bg3:#eeecea;--txt:#1a1a18;--txt2:#5f5e5a;--txt3:#888780;--bdr:rgba(0,0,0,0.12);--bdr2:rgba(0,0,0,0.22);--r:14px;--rm:8px; }
-body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);min-height:100vh;color:var(--txt); }
 .screen { display:none; }
 .screen.active { display:block; }
+#screen-login.active { display:flex !important; }
+:root { --acc:#1a7a4a;--acc-bg:#d4ede0;--acc-dk:#145e38;--bg:#fff;--bg2:#f5f5f3;--bg3:#eeecea;--txt:#1a1a18;--txt2:#5f5e5a;--txt3:#888780;--bdr:rgba(0,0,0,0.12);--bdr2:rgba(0,0,0,0.22);--r:14px;--rm:8px; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);min-height:100vh;color:var(--txt); }
 .btn-main { width:100%;padding:14px;background:var(--acc);color:#fff;border:none;border-radius:var(--r);font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px; }
 .card { background:var(--bg);border:0.5px solid var(--bdr);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:12px; }
 .card.s-new { border-left:3px solid #E24B4A; }
@@ -44,7 +45,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgr
 </div>
 
 <!-- LOGIN -->
-<div id="screen-login" class="screen active" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;">
+<div id="screen-login" class="screen active" style="min-height:100vh;align-items:center;justify-content:center;padding:24px;">
   <div style="background:var(--bg);border-radius:var(--r);padding:32px 24px;width:100%;max-width:340px;text-align:center;">
     <div style="width:64px;height:64px;border-radius:50%;background:var(--acc-bg);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
       <i class="ti ti-user" style="font-size:28px;color:var(--acc);"></i>
@@ -116,8 +117,13 @@ let paymentRequests = [];
 let ws = null;
 
 function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById('screen-'+id).classList.add('active');
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.remove('active');
+    s.style.display = 'none';
+  });
+  const target = document.getElementById('screen-'+id);
+  target.classList.add('active');
+  target.style.display = id === 'login' ? 'flex' : 'block';
 }
 
 async function doLogin() {
