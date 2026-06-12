@@ -758,9 +758,8 @@ async function findMyOrder() {
     return; 
   }
   
-  const btn = event.target;
-  btn.innerHTML = '<div class="spinner" style="border-top-color:var(--txt2);border-color:rgba(255,255,255,0.2);"></div> Ищем...';
-  btn.disabled = true;
+  const btn = document.querySelector('.btn-outline[onclick="findMyOrder()"]');
+  if(btn) { btn.innerHTML = '<div class="spinner" style="border-top-color:var(--txt2);border-color:rgba(255,255,255,0.2);"></div> Ищем...'; btn.disabled = true; }
   
   try {
     // Ищем активный заказ по имени и номеру стола
@@ -790,8 +789,7 @@ async function findMyOrder() {
     alert('Ошибка поиска. Попробуйте ещё раз.');
   }
   
-  btn.innerHTML = '<i class="ti ti-search"></i> Найти мой заказ';
-  btn.disabled = false;
+  if(btn) { btn.innerHTML = '<i class="ti ti-search"></i> Найти мой заказ'; btn.disabled = false; }
 }
 
 async function restoreSession() {
