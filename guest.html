@@ -110,9 +110,14 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgr
     <div class="table-chip" id="welcome-chip"><i class="ti ti-armchair" style="font-size:12px;"></i> Стол № <span id="table-welcome">1</span></div>
     <h1 style="font-size:32px;font-weight:400;text-align:center;line-height:1.1;margin-bottom:10px;color:rgba(255,255,255,0.7);" id="welcome-title">Добро<br>пожаловать</h1>
     <p style="font-size:14px;color:var(--txt2);text-align:center;margin-bottom:48px;line-height:1.6;" id="welcome-sub">Введите ваше имя чтобы открыть меню</p>
+    <!-- Выбор языка -->
+    <div style="display:flex;gap:8px;justify-content:center;margin-bottom:24px;">
+      <button id="lang-ru" onclick="setLang('ru')" style="padding:8px 20px;border-radius:20px;border:1px solid var(--green-border);background:var(--green);color:#fff;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;">🇷🇺 Русский</button>
+      <button id="lang-tj" onclick="setLang('tj')" style="padding:8px 20px;border-radius:20px;border:1px solid var(--bdr2);background:transparent;color:var(--txt2);font-size:13px;cursor:pointer;font-family:inherit;">🇹🇯 Тоҷикӣ</button>
+    </div>
     <input class="name-input" id="guest-name" type="text" placeholder="Ваше имя" />
     <button class="btn-green" onclick="enterMenu()" id="welcome-btn" style="margin-bottom:12px;">Открыть меню <i class="ti ti-arrow-right"></i></button>
-    <button class="btn-outline" onclick="findMyOrder()" style="background:rgba(255,255,255,0.04);">
+    <button class="btn-outline" onclick="findMyOrder()" style="background:rgba(255,255,255,0.04);" id="find-order-btn">
       <i class="ti ti-search"></i> Найти мой заказ
     </button>
   </div>
@@ -365,6 +370,214 @@ function playReadySound() {
     console.log('Audio not available:', e);
   }
 }
+// ПЕРЕВОДЫ
+const TRANSLATIONS = {
+  ru: {
+    welcome_title: 'Добро<br>пожаловать',
+    welcome_sub: 'Введите ваше имя чтобы открыть меню',
+    name_placeholder: 'Ваше имя',
+    open_menu: 'Открыть меню',
+    find_order: 'Найти мой заказ',
+    table: 'Стол №',
+    joint_order: '🔗 Совместный заказ',
+    greeting: 'Привет, ',
+    loading_menu: 'Загружаем меню...',
+    no_dishes: 'Нет блюд',
+    add_btn: '+ Добавить',
+    cart_title: 'Мой заказ',
+    add_more_title: 'Добавить к заказу',
+    takeaway_title: '🛍 Заказ с собой',
+    items_count: 'Позиций',
+    total: 'Итого',
+    place_order: 'Оформить заказ',
+    add_to_order: 'Добавить к заказу',
+    order_takeaway: 'Заказать с собой',
+    order_accepted: 'Заказ принят!',
+    kitchen_got: 'Кухня уже получила ваш заказ',
+    cooking: 'Готовится ваш заказ',
+    chef_working: 'Шеф уже работает над блюдами',
+    ready: '🎉 Заказ готов!',
+    bringing: 'Уже несём к вашему столику!',
+    step1: 'Заказ принят',
+    step1_sub: 'Кухня получила ваш заказ',
+    step2: 'Готовится',
+    step2_sub: 'Шеф работает над заказом',
+    step3: 'Готово',
+    step3_sub: 'Несём к вашему столику',
+    table_bill: 'Счёт стола',
+    guest: 'гость',
+    guests: 'гостя',
+    total_bill: 'Общий итог',
+    add_more: '+ Добавить к заказу',
+    with_self: 'С собой',
+    share: 'Поделиться',
+    payment: 'Оплата',
+    cancel_order: 'Отменить заказ',
+    back_to_menu: 'Назад в меню',
+    back_to_order: '← Вернуться к заказу',
+    ready_title: 'Заказ готов! 🎉',
+    ready_sub: 'Уже несём к вашему столику',
+    takeaway_ready: '🛍 Заказ с собой готов!',
+    takeaway_pickup: 'Заберите заказ у стойки',
+    ok_btn: 'Отлично!',
+    timer_label: 'Примерное время готовности',
+    timer_sub: 'Готовим ваш заказ',
+    timer_soon: 'Почти готово!',
+    pay_title: 'Оплата',
+    pay_sub: 'Выберите способ и сумму оплаты',
+    whole_table: 'Весь стол',
+    only_mine: 'Только моё',
+    pay_method: 'Способ оплаты:',
+    call_waiter: 'Вызвать официанта для оплаты',
+    waiter_notified: 'Официант уведомлён!',
+    attach_receipt: 'Прикрепить скриншот чека',
+    receipt_done: 'Чек прикреплён — можете уходить!',
+    waiter_will_check: 'Официант проверит и закроет стол',
+    adding_items: '+ Добавляется к вашему заказу',
+    takeaway_banner: 'Заказ с собой — выберите блюда',
+    share_text: 'Выбери что хочешь 🍽️ Заказ добавится к нашему столу!',
+    link_copied: 'Ссылка скопирована!
+
+Отправь другу — их заказ добавится к вашему столу.',
+    order_cancelled: 'Заказ отменён',
+    new_order_btn: '🔄 Сделать новый заказ',
+    cancel_confirm: 'Отменить заказ? Это действие нельзя отменить.',
+    error_retry: 'Ошибка. Попробуйте ещё раз.',
+    searching: 'Ищем...',
+    not_found: 'Активный заказ не найден. Проверьте имя или сделайте новый заказ.',
+    my_order: 'Мой заказ',
+    sbp_open: '📱 Оплатить через СБП',
+    sbp_transfer: 'Переведите',
+    recipient: 'Получатель:',
+    phone: 'Телефон:',
+    open_bank: '📱 Открыть приложение банка',
+    after_pay: 'После оплаты нажмите "Вызвать официанта"',
+    sbp_not_set: 'Номер СБП не настроен. Попросите официанта.',
+    uploading: 'Загружаем...',
+    upload_error: 'Ошибка загрузки. Попробуйте снова.',
+    cart_empty: 'Корзина пуста',
+  },
+  tj: {
+    welcome_title: 'Хуш<br>омадед',
+    welcome_sub: 'Номи худро ворид кунед то меню кушода шавад',
+    name_placeholder: 'Номи шумо',
+    open_menu: 'Кушодани меню',
+    find_order: 'Ёфтани фармоишам',
+    table: 'Миз №',
+    joint_order: '🔗 Фармоиши якҷоя',
+    greeting: 'Хуш омадед, ',
+    loading_menu: 'Меню бор мешавад...',
+    no_dishes: 'Хӯрок нест',
+    add_btn: '+ Илова',
+    cart_title: 'Фармоиши ман',
+    add_more_title: 'Илова кардан',
+    takeaway_title: '🛍 Фармоиши бурданӣ',
+    items_count: 'Миқдор',
+    total: 'Ҷамъ',
+    place_order: 'Фармоиш додан',
+    add_to_order: 'Ба фармоиш илова кунед',
+    order_takeaway: 'Бурданӣ фармоиш диҳед',
+    order_accepted: 'Фармоиш қабул шуд!',
+    kitchen_got: 'Ошхона фармоиши шуморо гирифт',
+    cooking: 'Фармоиши шумо тайёр мешавад',
+    chef_working: 'Ошпаз кор мекунад',
+    ready: '🎉 Фармоиш омода!',
+    bringing: 'Ҳозир меорем!',
+    step1: 'Фармоиш қабул шуд',
+    step1_sub: 'Ошхона фармоишро гирифт',
+    step2: 'Тайёр мешавад',
+    step2_sub: 'Ошпаз кор мекунад',
+    step3: 'Омода',
+    step3_sub: 'Ба мизи шумо меорем',
+    table_bill: 'Ҳисоби миз',
+    guest: 'меҳмон',
+    guests: 'меҳмон',
+    total_bill: 'Ҷамъи умумӣ',
+    add_more: '+ Илова кардан',
+    with_self: 'Бурданӣ',
+    share: 'Мубодила',
+    payment: 'Пардохт',
+    cancel_order: 'Бекор кардан',
+    back_to_menu: 'Бозгашт ба меню',
+    back_to_order: '← Бозгашт ба фармоиш',
+    ready_title: 'Фармоиш омода! 🎉',
+    ready_sub: 'Ҳозир ба мизи шумо меорем',
+    takeaway_ready: '🛍 Фармоиши бурданӣ омода!',
+    takeaway_pickup: 'Фармоишро аз стойка гиред',
+    ok_btn: 'Хуб!',
+    timer_label: 'Вақти тахминии омодагӣ',
+    timer_sub: 'Фармоиши шуморо тайёр мекунем',
+    timer_soon: 'Қариб омода!',
+    pay_title: 'Пардохт',
+    pay_sub: 'Усул ва маблағро интихоб кунед',
+    whole_table: 'Тамоми миз',
+    only_mine: 'Танҳо мани',
+    pay_method: 'Усули пардохт:',
+    call_waiter: 'Официантро даъват кунед',
+    waiter_notified: 'Официант огоҳ шуд!',
+    attach_receipt: 'Скриншоти чекро замима кунед',
+    receipt_done: 'Чек замима шуд — метавонед равед!',
+    waiter_will_check: 'Официант тафтиш мекунад',
+    adding_items: '+ Ба фармоиши шумо илова мешавад',
+    takeaway_banner: 'Фармоиши бурданӣ — хӯрок интихоб кунед',
+    share_text: 'Хӯроки дилхоҳатонро интихоб кунед 🍽️',
+    link_copied: 'Пайванд нусхабардорӣ шуд!
+
+Ба дӯст фиристед.',
+    order_cancelled: 'Фармоиш бекор шуд',
+    new_order_btn: '🔄 Фармоиши нав',
+    cancel_confirm: 'Фармоиш бекор карда шавад?',
+    error_retry: 'Хато. Дубора кӯшиш кунед.',
+    searching: 'Ҷустуҷӯ...',
+    not_found: 'Фармоиши фаъол ёфт нашуд.',
+    my_order: 'Фармоиши ман',
+    sbp_open: '📱 Тавассути СБП пардохт кунед',
+    sbp_transfer: 'Интиқол диҳед',
+    recipient: 'Гиранда:',
+    phone: 'Телефон:',
+    open_bank: '📱 Барномаи бонкро кушоед',
+    after_pay: 'Пас аз пардохт официантро даъват кунед',
+    sbp_not_set: 'Рақами СБП танзим нашудааст.',
+    uploading: 'Бор мешавад...',
+    upload_error: 'Хатои бор кардан. Дубора кӯшиш кунед.',
+    cart_empty: 'Сабад холист',
+  }
+};
+
+let currentLang = localStorage.getItem('guest_lang') || 'ru';
+
+function t(key) {
+  return TRANSLATIONS[currentLang]?.[key] || TRANSLATIONS['ru'][key] || key;
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('guest_lang', lang);
+  applyLang();
+}
+
+function applyLang() {
+  // Кнопки языка
+  document.getElementById('lang-ru').style.background = currentLang==='ru' ? 'var(--green)' : 'transparent';
+  document.getElementById('lang-ru').style.color = currentLang==='ru' ? '#fff' : 'var(--txt2)';
+  document.getElementById('lang-ru').style.borderColor = currentLang==='ru' ? 'var(--green-border)' : 'var(--bdr2)';
+  document.getElementById('lang-tj').style.background = currentLang==='tj' ? 'var(--green)' : 'transparent';
+  document.getElementById('lang-tj').style.color = currentLang==='tj' ? '#fff' : 'var(--txt2)';
+  document.getElementById('lang-tj').style.borderColor = currentLang==='tj' ? 'var(--green-border)' : 'var(--bdr2)';
+
+  // Welcome screen
+  const titleEl = document.getElementById('welcome-title');
+  if(titleEl) titleEl.innerHTML = t('welcome_title');
+  const subEl = document.getElementById('welcome-sub');
+  if(subEl) subEl.textContent = t('welcome_sub');
+  const nameInput = document.getElementById('guest-name');
+  if(nameInput) nameInput.placeholder = t('name_placeholder');
+  const welcomeBtn = document.getElementById('welcome-btn');
+  if(welcomeBtn) welcomeBtn.innerHTML = t('open_menu') + ' <i class="ti ti-arrow-right"></i>';
+  const findBtn = document.getElementById('find-order-btn');
+  if(findBtn) findBtn.innerHTML = '<i class="ti ti-search"></i> ' + t('find_order');
+}
+
 // Загружаем настройки с сервера
 let appSettings = {};
 async function loadSettings() {
@@ -1220,6 +1433,7 @@ setInterval(()=>{
   }
 },500);
 
+applyLang();
 restoreSession();
 </script>
 </body>
