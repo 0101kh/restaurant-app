@@ -103,7 +103,15 @@ function renderCard(o, isHistory) {
   const bCls=o.status==='new'?'b-new':o.status==='cooking'?'b-cooking':o.status==='ready'?'b-ready':'b-done';
   const bTxt=o.status==='new'?'Новый':o.status==='cooking'?'Готовится':o.status==='ready'?'Готово':'Выполнен';
   const bIco=o.status==='new'?'ti-circle':o.status==='cooking'?'ti-flame':o.status==='ready'?'ti-check':'ti-checks';
-  const items=(o.items||[]).map(i=>`<div style="display:flex;justify-content:space-between;font-size:13px;color:var(--txt2);"><span>${i.name}</span><span style="color:var(--txt3);">× ${i.qty||1}</span></div>`).join('');
+  const items=(o.items||[]).map(i=>{
+    const tags = [];
+    if(i.takeaway) tags.push('<span style="background:#185FA5;color:#fff;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:500;margin-left:4px;">С собой</span>');
+    if(i.addition) tags.push('<span style="background:#fff3cd;color:#856404;border:1px solid #ffc107;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:500;margin-left:4px;">Доп.</span>');
+    return `<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--txt2);">
+      <span style="display:flex;align-items:center;">${i.name}${tags.join('')}</span>
+      <span style="color:var(--txt3);flex-shrink:0;margin-left:8px;">× ${i.qty||1}</span>
+    </div>`;
+  }).join('');
   const orderTotal=(o.items||[]).reduce((s,i)=>s+i.price*(i.qty||1),0);
   const time=new Date(o.created_at).toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'});
   const isUpdated=o.has_additions===true;
