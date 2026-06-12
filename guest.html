@@ -168,7 +168,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     </div>
     <div style="padding:0 20px 32px;display:flex;flex-direction:column;gap:10px;">
       <button class="btn-green" onclick="addMoreItems()"><i class="ti ti-plus"></i> Добавить к заказу</button>
-      <button class="btn-outline" id="takeaway-btn" onclick="toggleTakeaway()"><i class="ti ti-shopping-bag"></i> <span id="takeaway-label">С собой</span></button>
+      <div style="display:flex;gap:10px;">
+        <button class="btn-outline" style="flex:1;" onclick="orderTakeaway()"><i class="ti ti-shopping-bag"></i> С собой</button>
+        <button class="btn-outline" style="flex:1;" onclick="shareMenu()"><i class="ti ti-share"></i> Поделиться</button>
+      </div>
       <button class="btn-outline" onclick="showSplit()"><i class="ti ti-receipt"></i> Оплата</button>
     </div>
   </div>
@@ -199,6 +202,7 @@ const WS_URL = 'wss://restaurant-api-production-4fdd.up.railway.app';
 
 const params = new URLSearchParams(window.location.search);
 const TABLE_NUM = parseInt(params.get('table')) || 1;
+const SHARED_SESSION = params.get('session') || null;
 document.getElementById('table-welcome').textContent = TABLE_NUM;
 document.getElementById('table-menu').textContent = TABLE_NUM;
 
@@ -373,7 +377,7 @@ async function handleOrderBtn() {
     }
 
     // Получаем или создаём сессию
-    let sid = sessionId;
+    let sid = sessionId || SHARED_SESSION;
     if(!sid) {
       const sessRes = await fetch(API+'/api/sessions/active/'+TABLE_NUM);
       const sess = await sessRes.json();
@@ -388,11 +392,12 @@ async function handleOrderBtn() {
 
     const orderRes = await fetch(API+'/api/orders',{
       method:'POST', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({table_number:TABLE_NUM,guest_name:guestName,guest_name_display:guestName,items,session_id:sid})
+      body:JSON.stringify({table_number:TABLE_NUM,guest_name:guestName,guest_name_display:guestName,items,session_id:sid,is_takeaway:isTakeaway})
     });
     const order = await orderRes.json();
     currentOrderId=order.id;
     cart={};
+    isTakeaway=false;
     saveSession(false);
     showScreen('status');
     updateStatusUI('new');
@@ -474,24 +479,39 @@ function showSplitDetail(type) {
 
 let isTakeaway = false;
 
-async function toggleTakeaway() {
-  if(!currentOrderId) return;
-  isTakeaway = !isTakeaway;
-  const btn = document.getElementById('takeaway-btn');
-  const label = document.getElementById('takeaway-label');
-  if(isTakeaway) {
-    btn.style.borderColor = 'var(--green)';
-    btn.style.color = 'var(--green-light)';
-    label.textContent = 'С собой ✓';
+function orderTakeaway() {
+  // Открываем меню в режиме "С собой"
+  isTakeaway = true;
+  isAddingMore = true;
+  cart = {};
+  saveSession(true);
+  showScreen('menu');
+  renderMenu(currentCat || 'all');
+  // Баннер "С собой"
+  const grid = document.getElementById('menu-list');
+  const banner = document.createElement('div');
+  banner.style.cssText = 'background:rgba(24,95,165,0.1);border:1px solid rgba(24,95,165,0.3);border-radius:12px;padding:12px 16px;margin-bottom:4px;display:flex;align-items:center;gap:10px;font-size:13px;color:#5ba3e0;';
+  banner.innerHTML = '<i class="ti ti-shopping-bag" style="font-size:16px;"></i> Заказ С собой — выберите блюда';
+  grid.insertBefore(banner, grid.firstChild);
+}
+
+function shareMenu() {
+  // Формируем ссылку с номером стола и session_id
+  const shareUrl = window.location.origin + window.location.pathname + '?table=' + TABLE_NUM + '&session=' + sessionId;
+  if(navigator.share) {
+    navigator.share({
+      title: 'Меню ресторана',
+      text: 'Выбери что хочешь — заказ добавится к нашему столу 🍽️',
+      url: shareUrl
+    });
   } else {
-    btn.style.borderColor = '';
-    btn.style.color = '';
-    label.textContent = 'С собой';
+    // Копируем в буфер
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      alert('Ссылка скопирована! Отправь другу/жене — они выберут блюда и заказ добавится к вашему столу.');
+    }).catch(() => {
+      prompt('Скопируй ссылку:', shareUrl);
+    });
   }
-  await fetch(API+'/api/orders/'+currentOrderId, {
-    method:'PUT', headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({is_takeaway: isTakeaway})
-  });
 }
 
 async function restoreSession() {
