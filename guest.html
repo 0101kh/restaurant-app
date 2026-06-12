@@ -782,8 +782,7 @@ async function findMyOrder() {
       updateStatusUI(found.status);
       if(found.session_id) loadTableOrders(found.session_id);
     } else {
-      alert('Активный заказ не найден.
-Проверьте имя или сделайте новый заказ.');
+      alert('Активный заказ не найден. Проверьте имя или сделайте новый заказ.');
     }
   } catch(e) {
     alert('Ошибка поиска. Попробуйте ещё раз.');
