@@ -61,7 +61,8 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgr
     </div>
     <div style="margin-bottom:16px;">
       <div style="font-size:13px;color:#888;margin-bottom:8px;">Блюда</div>
-      <div id="to-menu-list" style="display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto;"></div>
+      <input type="text" id="to-search" placeholder="🔍 Поиск блюда..." oninput="renderToMenu()" style="width:100%;padding:10px 14px;font-size:14px;border:1px solid rgba(0,0,0,0.2);border-radius:8px;font-family:inherit;outline:none;margin-bottom:8px;" />
+      <div id="to-menu-list" style="display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto;"></div>
     </div>
     <div style="background:#f5f5f3;border-radius:8px;padding:12px;margin-bottom:14px;display:flex;justify-content:space-between;">
       <span style="font-size:14px;font-weight:500;">Итого</span>
@@ -196,6 +197,8 @@ async function openTakeOrder() {
   const sel = document.getElementById('to-table');
   sel.innerHTML = tables.map(t=>`<option value="${t}">Стол ${t}</option>`).join('');
   
+  const searchEl = document.getElementById('to-search');
+  if(searchEl) searchEl.value = '';
   renderToMenu();
   document.getElementById('take-order-modal').style.display='flex';
 }
@@ -207,7 +210,9 @@ function closeTakeOrder() {
 
 function renderToMenu() {
   const el = document.getElementById('to-menu-list');
-  el.innerHTML = toMenu.map(item => {
+  const search = (document.getElementById('to-search')?.value||'').toLowerCase().trim();
+  const filtered = search ? toMenu.filter(item => item.name.toLowerCase().includes(search)) : toMenu;
+  el.innerHTML = filtered.map(item => {
     const qty = toCart[item.id] || 0;
     return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px;background:#fff;border:0.5px solid rgba(0,0,0,0.1);border-radius:8px;">
       <div>
