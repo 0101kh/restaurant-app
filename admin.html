@@ -59,6 +59,7 @@ textarea { resize:vertical;min-height:80px; }
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;">
       <button class="btn-sec" id="tab-menu-btn" onclick="switchAdminTab('menu')"><i class="ti ti-tools-kitchen-2"></i> Меню</button>
+      <button class="btn-sec" id="tab-waiters-btn" onclick="switchAdminTab('waiters')"><i class="ti ti-users"></i> Официанты</button>
       <button class="btn-sec" id="tab-stats-btn" onclick="switchAdminTab('stats')"><i class="ti ti-chart-bar"></i> Статистика</button>
       <button class="btn-sec" onclick="openCatModal()"><i class="ti ti-category"></i> Категории</button>
       <button class="btn-main" id="add-dish-btn" onclick="openModal()"><i class="ti ti-plus"></i> Добавить блюдо</button>
@@ -69,6 +70,38 @@ textarea { resize:vertical;min-height:80px; }
   <div id="cat-filter" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;"></div>
 
   <div id="menu-list" style="display:flex;flex-direction:column;gap:12px;"></div>
+</div>
+
+<!-- Waiters section -->
+<div id="waiters-section" style="display:none;max-width:760px;margin:0 auto;padding:0 16px 80px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+    <h2 style="font-size:18px;font-weight:500;">Официанты</h2>
+    <button class="btn-main" onclick="openWaiterModal()"><i class="ti ti-plus"></i> Добавить</button>
+  </div>
+  <div id="waiters-list" style="display:flex;flex-direction:column;gap:12px;"></div>
+</div>
+
+<!-- Waiter Modal -->
+<div class="overlay" id="waiter-modal">
+  <div class="modal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <h2 style="font-size:18px;font-weight:500;" id="waiter-modal-title">Новый официант</h2>
+      <button onclick="closeWaiterModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--txt3);">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div><div style="font-size:13px;color:var(--txt2);margin-bottom:6px;">Имя</div><input type="text" id="w-name" placeholder="Алишер" /></div>
+      <div><div style="font-size:13px;color:var(--txt2);margin-bottom:6px;">Логин</div><input type="text" id="w-login" placeholder="alisher" /></div>
+      <div><div style="font-size:13px;color:var(--txt2);margin-bottom:6px;">Пароль</div><input type="password" id="w-password" placeholder="••••••" /></div>
+      <div>
+        <div style="font-size:13px;color:var(--txt2);margin-bottom:8px;">Столы (выберите зону)</div>
+        <div id="w-tables-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;"></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:8px;">
+        <button class="btn-main" onclick="saveWaiter()" style="flex:1;"><i class="ti ti-check"></i> Сохранить</button>
+        <button class="btn-sec" onclick="closeWaiterModal()">Отмена</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Stats section -->
@@ -285,17 +318,15 @@ function logout() {
 function switchAdminTab(tab) {
   const menuSection = document.querySelector('.wrap');
   const statsSection = document.getElementById('stats-section');
+  const waitersSection = document.getElementById('waiters-section');
   const addBtn = document.getElementById('add-dish-btn');
-  if(tab==='menu') {
-    menuSection.style.display='block';
-    statsSection.style.display='none';
-    addBtn.style.display='inline-flex';
-  } else {
-    menuSection.style.display='none';
-    statsSection.style.display='block';
-    addBtn.style.display='none';
-    loadStats();
-  }
+  menuSection.style.display='none';
+  statsSection.style.display='none';
+  waitersSection.style.display='none';
+  addBtn.style.display='none';
+  if(tab==='menu') { menuSection.style.display='block'; addBtn.style.display='inline-flex'; }
+  else if(tab==='stats') { statsSection.style.display='block'; loadStats(); }
+  else if(tab==='waiters') { waitersSection.style.display='block'; loadWaiters(); }
 }
 
 async function loadStats() {
@@ -364,6 +395,95 @@ async function loadStats() {
   } catch(e) {
     console.error(e);
   }
+}
+
+let waiters = [];
+let editingWaiterId = null;
+let selectedTables = [];
+
+async function loadWaiters() {
+  const res = await fetch(API+'/api/waiters');
+  waiters = await res.json();
+  const el = document.getElementById('waiters-list');
+  if(!waiters.length) {
+    el.innerHTML='<div style="text-align:center;padding:32px;color:var(--txt3);">Нет официантов. Добавьте первого.</div>';
+    return;
+  }
+  el.innerHTML = waiters.map(w=>`
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:15px;font-weight:500;">${w.name}</div>
+          <div style="font-size:13px;color:var(--txt2);">Логин: ${w.login}</div>
+          <div style="font-size:12px;color:var(--txt3);margin-top:4px;">Столы: ${(w.tables||[]).length?w.tables.sort((a,b)=>a-b).map(t=>'Стол '+t).join(', '):'Не назначены'}</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-sec" onclick="editWaiter('${w.id}')"><i class="ti ti-edit"></i></button>
+          <button class="btn-danger" onclick="deleteWaiter('${w.id}')"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openWaiterModal(waiter=null) {
+  editingWaiterId = waiter?waiter.id:null;
+  selectedTables = waiter?[...(waiter.tables||[])]:[];
+  document.getElementById('waiter-modal-title').textContent = waiter?'Редактировать':'Новый официант';
+  document.getElementById('w-name').value = waiter?.name||'';
+  document.getElementById('w-login').value = waiter?.login||'';
+  document.getElementById('w-password').value = '';
+  
+  // Генерируем кнопки столов (1-15)
+  const grid = document.getElementById('w-tables-grid');
+  grid.innerHTML = Array.from({length:15},(_,i)=>i+1).map(n=>`
+    <button onclick="toggleTable(${n},this)" style="padding:8px;border-radius:var(--rm);border:1px solid ${selectedTables.includes(n)?'var(--acc)':'var(--bdr2)'};background:${selectedTables.includes(n)?'var(--acc-bg)':'transparent'};color:${selectedTables.includes(n)?'var(--acc-dk)':'var(--txt2)'};font-size:13px;cursor:pointer;font-family:inherit;">
+      ${n}
+    </button>
+  `).join('');
+  
+  document.getElementById('waiter-modal').classList.add('active');
+}
+
+function toggleTable(n, btn) {
+  if(selectedTables.includes(n)) {
+    selectedTables = selectedTables.filter(t=>t!==n);
+    btn.style.borderColor='var(--bdr2)';btn.style.background='transparent';btn.style.color='var(--txt2)';
+  } else {
+    selectedTables.push(n);
+    btn.style.borderColor='var(--acc)';btn.style.background='var(--acc-bg)';btn.style.color='var(--acc-dk)';
+  }
+}
+
+function closeWaiterModal() { document.getElementById('waiter-modal').classList.remove('active'); }
+
+async function saveWaiter() {
+  const name = document.getElementById('w-name').value.trim();
+  const login = document.getElementById('w-login').value.trim();
+  const password = document.getElementById('w-password').value.trim();
+  if(!name||!login) { alert('Заполните имя и логин'); return; }
+  if(!editingWaiterId && !password) { alert('Введите пароль'); return; }
+  
+  const payload = { name, login, tables: selectedTables, active: true };
+  if(password) payload.password = password;
+  
+  if(editingWaiterId) {
+    const existing = waiters.find(w=>w.id===editingWaiterId);
+    if(!password) payload.password = existing.password;
+    await fetch(API+'/api/waiters/'+editingWaiterId, {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  } else {
+    await fetch(API+'/api/waiters', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  }
+  closeWaiterModal();
+  loadWaiters();
+}
+
+function editWaiter(id) { const w=waiters.find(x=>x.id===id); if(w) openWaiterModal(w); }
+
+async function deleteWaiter(id) {
+  if(!confirm('Удалить официанта?')) return;
+  await fetch(API+'/api/waiters/'+id, {method:'DELETE'});
+  loadWaiters();
 }
 
 async function loadMenu() {

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Официант</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.3.0/dist/tabler-icons.min.css">
+<style>
+* { box-sizing:border-box;margin:0;padding:0; }
+:root { --acc:#1a7a4a;--acc-bg:#d4ede0;--acc-dk:#145e38;--bg:#fff;--bg2:#f5f5f3;--bg3:#eeecea;--txt:#1a1a18;--txt2:#5f5e5a;--txt3:#888780;--bdr:rgba(0,0,0,0.12);--bdr2:rgba(0,0,0,0.22);--r:14px;--rm:8px; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);min-height:100vh;color:var(--txt); }
+.screen { display:none; }
+.screen.active { display:block; }
+.btn-main { width:100%;padding:14px;background:var(--acc);color:#fff;border:none;border-radius:var(--r);font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px; }
+.card { background:var(--bg);border:0.5px solid var(--bdr);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:12px; }
+.card.s-new { border-left:3px solid #E24B4A; }
+.card.s-cooking { border-left:3px solid #BA7517; }
+.card.s-ready { border-left:3px solid #1a7a4a; }
+.badge { display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:500; }
+.b-new{background:#FCEBEB;color:#A32D2D;}.b-cooking{background:#FAEEDA;color:#854F0B;}.b-ready{background:#d4ede0;color:#145e38;}
+.btn { padding:9px 14px;border-radius:var(--rm);border:1px solid var(--bdr2);background:var(--bg2);color:var(--txt2);font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:inherit; }
+.btn.prim { background:var(--acc);color:#fff;border-color:var(--acc); }
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--acc);animation:pulse 2s infinite;display:inline-block;}
+
+/* Уведомление о новом заказе */
+#order-notification { display:none;position:fixed;top:0;left:0;right:0;z-index:999;background:#1a7a4a;color:#fff;padding:16px 20px;animation:slideDown 0.3s ease; }
+</style>
+</head>
+<body>
+
+<!-- Уведомление -->
+<div id="order-notification">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <i class="ti ti-bell" style="font-size:24px;flex-shrink:0;"></i>
+    <div style="flex:1;">
+      <div style="font-size:15px;font-weight:600;" id="notif-text">Новый заказ</div>
+      <div style="font-size:13px;opacity:0.85;" id="notif-sub"></div>
+    </div>
+    <button onclick="closeNotif()" style="background:rgba(255,255,255,0.2);border:none;border-radius:8px;padding:8px 12px;color:#fff;cursor:pointer;font-family:inherit;font-size:13px;">OK</button>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div id="screen-login" class="screen active" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;">
+  <div style="background:var(--bg);border-radius:var(--r);padding:32px 24px;width:100%;max-width:340px;text-align:center;">
+    <div style="width:64px;height:64px;border-radius:50%;background:var(--acc-bg);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+      <i class="ti ti-user" style="font-size:28px;color:var(--acc);"></i>
+    </div>
+    <h2 style="font-size:20px;font-weight:500;margin-bottom:6px;">Вход для официанта</h2>
+    <p style="font-size:14px;color:var(--txt2);margin-bottom:24px;">Введите логин и пароль</p>
+    <input type="text" id="login-input" placeholder="Логин" style="width:100%;padding:12px 16px;font-size:15px;border:1px solid var(--bdr2);border-radius:var(--rm);background:var(--bg);font-family:inherit;outline:none;margin-bottom:10px;" />
+    <input type="password" id="password-input" placeholder="Пароль" style="width:100%;padding:12px 16px;font-size:15px;border:1px solid var(--bdr2);border-radius:var(--rm);background:var(--bg);font-family:inherit;outline:none;margin-bottom:14px;" onkeydown="if(event.key==='Enter')doLogin()" />
+    <button class="btn-main" onclick="doLogin()">Войти</button>
+    <div id="login-error" style="display:none;color:#A32D2D;font-size:13px;margin-top:10px;"></div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="screen-main" class="screen">
+  <div style="max-width:720px;margin:0 auto;padding:20px 16px 80px;">
+
+    <!-- Header -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <div>
+        <div style="font-size:11px;color:var(--txt3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;">Официант</div>
+        <h1 style="font-size:20px;font-weight:500;" id="waiter-name">—</h1>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="dot" id="conn-dot"></span>
+        <span style="font-size:13px;color:var(--txt2);" id="conn-status">—</span>
+        <button onclick="doLogout()" style="background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--rm);padding:8px 12px;font-size:13px;cursor:pointer;color:var(--txt2);font-family:inherit;">Выйти</button>
+      </div>
+    </div>
+
+    <!-- Мои столы -->
+    <div style="background:var(--bg);border-radius:var(--r);padding:14px 16px;margin-bottom:20px;border:0.5px solid var(--bdr);">
+      <div style="font-size:12px;color:var(--txt3);margin-bottom:8px;">МОИ СТОЛЫ</div>
+      <div id="my-tables-chips" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+    </div>
+
+    <!-- Статистика -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;">
+      <div style="background:var(--bg);border-radius:var(--rm);padding:12px;text-align:center;">
+        <div style="font-size:22px;font-weight:500;" id="w-stat-new">0</div>
+        <div style="font-size:11px;color:var(--txt3);margin-top:2px;">Новые</div>
+      </div>
+      <div style="background:var(--bg);border-radius:var(--rm);padding:12px;text-align:center;">
+        <div style="font-size:22px;font-weight:500;" id="w-stat-ready">0</div>
+        <div style="font-size:11px;color:var(--txt3);margin-top:2px;">Готовы</div>
+      </div>
+      <div style="background:var(--bg);border-radius:var(--rm);padding:12px;text-align:center;">
+        <div style="font-size:22px;font-weight:500;" id="w-stat-payment">0</div>
+        <div style="font-size:11px;color:var(--txt3);margin-top:2px;">Оплата</div>
+      </div>
+    </div>
+
+    <!-- Заказы -->
+    <div id="orders-list" style="display:flex;flex-direction:column;gap:12px;"></div>
+
+    <!-- Запросы оплаты -->
+    <div id="payment-requests" style="margin-top:20px;display:flex;flex-direction:column;gap:12px;"></div>
+  </div>
+</div>
+
+<script>
+const API = 'https://restaurant-api-production-4fdd.up.railway.app';
+const WS_URL = 'wss://restaurant-api-production-4fdd.up.railway.app';
+const STORAGE_KEY = 'waiter_session';
+
+let waiterData = null;
+let orders = [];
+let paymentRequests = [];
+let ws = null;
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+}
+
+async function doLogin() {
+  const login = document.getElementById('login-input').value.trim();
+  const password = document.getElementById('password-input').value.trim();
+  if(!login||!password) return;
+  try {
+    const res = await fetch(API+'/api/waiters/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({login, password})
+    });
+    if(!res.ok) {
+      const err = await res.json();
+      document.getElementById('login-error').style.display='block';
+      document.getElementById('login-error').textContent = err.error || 'Ошибка входа';
+      return;
+    }
+    waiterData = await res.json();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(waiterData));
+    startApp();
+  } catch(e) {
+    document.getElementById('login-error').style.display='block';
+    document.getElementById('login-error').textContent = 'Ошибка соединения';
+  }
+}
+
+function doLogout() {
+  localStorage.removeItem(STORAGE_KEY);
+  waiterData=null; orders=[]; paymentRequests=[];
+  if(ws) ws.close();
+  showScreen('login');
+}
+
+function startApp() {
+  showScreen('main');
+  document.getElementById('waiter-name').textContent = waiterData.name;
+  
+  // Показываем столы
+  const tables = waiterData.tables || [];
+  document.getElementById('my-tables-chips').innerHTML = tables.map(t=>
+    `<span style="background:var(--acc-bg);color:var(--acc-dk);border-radius:20px;padding:4px 12px;font-size:13px;font-weight:500;">Стол ${t}</span>`
+  ).join('') || '<span style="color:var(--txt3);font-size:13px;">Столы не назначены</span>';
+
+  loadOrders();
+  connectWS();
+}
+
+async function loadOrders() {
+  const tables = waiterData.tables || [];
+  if(!tables.length) return;
+  try {
+    const res = await fetch(API+'/api/orders/active');
+    const all = await res.json();
+    orders = all.filter(o => tables.includes(o.table_number));
+    renderOrders();
+  } catch(e){}
+}
+
+function connectWS() {
+  if(ws) return;
+  ws = new WebSocket(WS_URL);
+  ws.onopen = () => {
+    document.getElementById('conn-dot').style.background='var(--acc)';
+    document.getElementById('conn-status').textContent='В сети';
+  };
+  ws.onclose = () => {
+    document.getElementById('conn-dot').style.background='#E24B4A';
+    document.getElementById('conn-status').textContent='Переподключение...';
+    ws=null; setTimeout(connectWS, 3000);
+  };
+  ws.onmessage = (e) => {
+    try {
+      const msg = JSON.parse(e.data);
+      const tables = waiterData?.tables || [];
+      
+      if(msg.type==='new_order' && tables.includes(msg.order.table_number)) {
+        orders.unshift(msg.order);
+        renderOrders();
+        showNotif(`🔔 Новый заказ — Стол ${msg.order.table_number}`, msg.order.guest_name);
+      } else if(msg.type==='order_updated') {
+        if(tables.includes(msg.order.table_number)) {
+          const idx = orders.findIndex(o=>o.id===msg.order.id);
+          if(msg.order.status==='done'||msg.order.status==='cancelled') {
+            orders = orders.filter(o=>o.id!==msg.order.id);
+          } else if(idx!==-1) {
+            orders[idx] = msg.order;
+          } else {
+            orders.unshift(msg.order);
+          }
+          if(msg.order.status==='ready' && tables.includes(msg.order.table_number)) {
+            showNotif(`✅ Заказ готов — Стол ${msg.order.table_number}`, msg.order.guest_name+' — можно подавать!');
+          }
+          renderOrders();
+        }
+      } else if(msg.type==='payment_requested' && tables.includes(msg.table_number)) {
+        paymentRequests.push(msg);
+        renderOrders();
+        showNotif(`💳 Запрос оплаты — Стол ${msg.table_number}`, msg.guest_name+' · '+msg.total+' ₽ · '+msg.method);
+      } else if(msg.type==='payment_confirmed') {
+        paymentRequests = paymentRequests.filter(p=>p.session_id!==msg.session_id);
+        renderOrders();
+      }
+    } catch(err){}
+  };
+}
+
+function mins(at){ return Math.floor((Date.now()-new Date(at).getTime())/60000); }
+
+function renderOrders() {
+  const nw = orders.filter(o=>o.status==='new');
+  const rd = orders.filter(o=>o.status==='ready');
+  document.getElementById('w-stat-new').textContent = nw.length;
+  document.getElementById('w-stat-ready').textContent = rd.length;
+  document.getElementById('w-stat-payment').textContent = paymentRequests.length;
+
+  const g = document.getElementById('orders-list');
+  const sorted = [...orders.filter(o=>o.status==='ready'), ...orders.filter(o=>o.status==='new'), ...orders.filter(o=>o.status==='cooking')];
+  
+  if(!sorted.length && !paymentRequests.length) {
+    g.innerHTML='<div style="text-align:center;padding:48px 0;color:var(--txt3);font-size:14px;"><i class="ti ti-armchair" style="font-size:36px;display:block;margin-bottom:8px;"></i>Нет активных заказов</div>';
+  } else {
+    g.innerHTML = sorted.map(o=>{
+      const m = mins(o.created_at);
+      const bCls = o.status==='new'?'b-new':o.status==='cooking'?'b-cooking':'b-ready';
+      const bTxt = o.status==='new'?'Новый':o.status==='cooking'?'Готовится':'Готово';
+      const orderTotal = (o.items||[]).reduce((s,i)=>s+i.price*(i.qty||1),0);
+      const hasTw = o.is_takeaway||(o.items||[]).some(i=>i&&i.takeaway);
+      return `<div class="card s-${o.status}">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="background:var(--bg2);border:0.5px solid var(--bdr);border-radius:var(--rm);padding:8px 12px;text-align:center;min-width:50px;">
+              <div style="font-size:10px;color:var(--txt3);">СТОЛ</div>
+              <div style="font-size:20px;font-weight:500;">${o.table_number}</div>
+            </div>
+            <div>
+              <div style="font-size:15px;font-weight:500;">${o.guest_name}${hasTw?' 🛍':''}</div>
+              <div style="font-size:12px;color:var(--txt3);">${m} мин · ${orderTotal} ₽</div>
+            </div>
+          </div>
+          <span class="badge ${bCls}">${bTxt}</span>
+        </div>
+        <div style="border-top:0.5px solid var(--bdr);padding-top:8px;font-size:13px;color:var(--txt2);">
+          ${(o.items||[]).map(i=>i.name+(i.qty>1?' ×'+i.qty:'')).join(' · ')}
+        </div>
+        ${o.status==='ready'?`<button class="btn prim" onclick="markDelivered('${o.id}')"><i class="ti ti-checks"></i> Подал гостю</button>`:''}
+      </div>`;
+    }).join('');
+  }
+
+  // Запросы оплаты
+  const pr = document.getElementById('payment-requests');
+  if(paymentRequests.length) {
+    pr.innerHTML = `<div style="font-size:13px;font-weight:500;color:var(--txt2);margin-bottom:8px;">💳 ЗАПРОСЫ ОПЛАТЫ</div>` +
+    paymentRequests.map(p=>`
+      <div style="background:#fff;border:2px solid var(--acc);border-radius:var(--r);padding:16px;display:flex;justify-content:space-between;align-items:center;gap:12px;">
+        <div>
+          <div style="font-size:15px;font-weight:600;">Стол ${p.table_number} · ${p.guest_name}</div>
+          <div style="font-size:13px;color:var(--txt2);">${p.method} · ${p.total} ₽</div>
+        </div>
+        <button class="btn prim" onclick="confirmPay('${p.session_id}')"><i class="ti ti-check"></i> Принято</button>
+      </div>`).join('');
+  } else {
+    pr.innerHTML='';
+  }
+}
+
+async function markDelivered(id) {
+  await fetch(API+'/api/orders/'+id, {
+    method:'PUT', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({status:'done'})
+  });
+}
+
+async function confirmPay(sessionId) {
+  await fetch(API+'/api/payment/confirm', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({session_id: sessionId})
+  });
+}
+
+let notifTimeout = null;
+function showNotif(title, sub) {
+  document.getElementById('notif-text').textContent = title;
+  document.getElementById('notif-sub').textContent = sub;
+  document.getElementById('order-notification').style.display='block';
+  if(navigator.vibrate) navigator.vibrate([300,100,300]);
+  if(notifTimeout) clearTimeout(notifTimeout);
+  notifTimeout = setTimeout(closeNotif, 6000);
+}
+function closeNotif() {
+  document.getElementById('order-notification').style.display='none';
+}
+
+// Восстановление сессии
+const saved = localStorage.getItem(STORAGE_KEY);
+if(saved) {
+  try {
+    waiterData = JSON.parse(saved);
+    startApp();
+  } catch(e) { localStorage.removeItem(STORAGE_KEY); }
+}
+</script>
+</body>
+</html>
