@@ -102,11 +102,22 @@ textarea { resize:vertical;min-height:80px; }
   <div style="background:#fff;border-radius:14px;padding:16px;margin-top:16px;">
     <div style="font-size:15px;font-weight:500;margin-bottom:14px;">⚙️ Настройки</div>
     <div style="font-size:13px;color:#888;margin-bottom:6px;">Название ресторана</div>
-    <div style="display:flex;gap:8px;">
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
       <input type="text" id="restaurant-name-input" placeholder="Например: Чайхана Восток" style="flex:1;" />
       <button class="btn-main" onclick="saveRestaurantName()"><i class="ti ti-check"></i> Сохранить</button>
     </div>
-    <div style="font-size:12px;color:#888;margin-top:8px;">Название отображается на экране приветствия для гостей</div>
+    <div style="font-size:13px;color:#888;margin-bottom:6px;">Номер телефона для СБП</div>
+    <div style="display:flex;gap:8px;margin-bottom:6px;">
+      <input type="text" id="sbp-phone-input" placeholder="+7 900 000 00 00" style="flex:1;" />
+      <button class="btn-main" onclick="saveSbpPhone()"><i class="ti ti-check"></i> Сохранить</button>
+    </div>
+    <div style="font-size:12px;color:#888;margin-bottom:16px;">Гость нажмёт СБП → откроется приложение банка с вашим номером</div>
+    <div style="font-size:13px;color:#888;margin-bottom:6px;">Имя получателя (для СБП)</div>
+    <div style="display:flex;gap:8px;margin-bottom:4px;">
+      <input type="text" id="sbp-name-input" placeholder="Иван Иванович" style="flex:1;" />
+      <button class="btn-main" onclick="saveSbpName()"><i class="ti ti-check"></i> Сохранить</button>
+    </div>
+    <div style="font-size:12px;color:#888;margin-top:4px;">Отображается гостю при оплате СБП</div>
     <div style="margin-top:16px;padding-top:16px;border-top:0.5px solid rgba(0,0,0,0.1);">
       <div style="font-size:13px;color:#888;margin-bottom:6px;">Сменить пароль администратора</div>
       <div style="display:flex;gap:8px;">
@@ -246,6 +257,18 @@ function saveRestaurantName() {
   alert('Название сохранено!');
 }
 
+function saveSbpPhone() {
+  const phone = document.getElementById('sbp-phone-input').value.trim();
+  localStorage.setItem('sbp_phone', phone);
+  alert('Номер СБП сохранён!');
+}
+
+function saveSbpName() {
+  const name = document.getElementById('sbp-name-input').value.trim();
+  localStorage.setItem('sbp_name', name);
+  alert('Имя получателя сохранено!');
+}
+
 function changePassword() {
   const newPwd = document.getElementById('new-password-input').value.trim();
   if(!newPwd) { alert('Введите новый пароль'); return; }
@@ -280,6 +303,14 @@ async function loadStats() {
   const rName = localStorage.getItem('restaurant_name') || '';
   const rInput = document.getElementById('restaurant-name-input');
   if(rInput) rInput.value = rName;
+  
+  const sbpPhone = localStorage.getItem('sbp_phone') || '';
+  const sbpPhoneInput = document.getElementById('sbp-phone-input');
+  if(sbpPhoneInput) sbpPhoneInput.value = sbpPhone;
+  
+  const sbpName = localStorage.getItem('sbp_name') || '';
+  const sbpNameInput = document.getElementById('sbp-name-input');
+  if(sbpNameInput) sbpNameInput.value = sbpName;
   
   try {
     const [activeRes, historyRes] = await Promise.all([
