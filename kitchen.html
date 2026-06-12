@@ -133,7 +133,8 @@ function renderCard(o, isHistory) {
     if(isUpdated) btns+=`<span style="background:#fff3cd;color:#856404;border:1px solid #ffc107;border-radius:6px;padding:7px 12px;font-size:12px;font-weight:500;display:inline-flex;align-items:center;gap:4px;"><i class="ti ti-plus" style="font-size:13px;"></i> Доп. заказ</span>`;
   }
 
-  return `<div class="card s-${o.status}" style="${hasTakeaway?'border-top:3px solid #185FA5;':''}">
+  const _htw = o.is_takeaway === true || (o.items||[]).some(i=>i && i.takeaway);
+  return `<div class="card s-${o.status}" style="${_htw?'border-top:3px solid #185FA5;':''}">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
       <div style="display:flex;align-items:center;gap:10px;">
         <div style="background:var(--bg2);border:0.5px solid var(--bdr);border-radius:var(--rm);padding:8px 12px;text-align:center;min-width:52px;">
@@ -143,7 +144,7 @@ function renderCard(o, isHistory) {
         <div>
           <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
             <div style="font-size:15px;font-weight:500;">${o.guest_name_display||o.guest_name}</div>
-            ${hasTakeaway?'<span style="background:#185FA5;color:#fff;border-radius:6px;padding:3px 10px;font-size:12px;font-weight:500;display:inline-flex;align-items:center;gap:4px;"><i class=\"ti ti-shopping-bag\" style=\"font-size:12px;\"></i> С собой — упаковать!</span>':''}
+            ${_htw?'<span style="background:#185FA5;color:#fff;border-radius:6px;padding:3px 10px;font-size:12px;font-weight:500;display:inline-flex;align-items:center;gap:4px;"><i class=\"ti ti-shopping-bag\" style=\"font-size:12px;\"></i> С собой — упаковать!</span>':''}
           </div>
           <div style="font-size:12px;color:var(--txt3);">${time} · ${orderTotal} ₽</div>
         </div>
