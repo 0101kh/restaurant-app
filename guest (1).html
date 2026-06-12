@@ -270,6 +270,10 @@ function showMenu() { showScreen('menu'); renderMenu(currentCat); }
 function showCart() { 
   showScreen('cart');
   document.getElementById('cart-title').textContent = isAddingMore ? 'Добавить к заказу' : 'Мой заказ';
+  // Всегда сбрасываем кнопку при открытии корзины
+  const btn = document.getElementById('order-btn');
+  btn.disabled = false;
+  btn.innerHTML = (isAddingMore ? 'Добавить к заказу' : 'Оформить заказ') + ' <i class="ti ti-send"></i>';
   renderCart(); 
 }
 
@@ -404,7 +408,11 @@ async function handleOrderBtn() {
 function addMoreItems(){
   isAddingMore=true;
   cart={};
+  isTakeaway=false;
   saveSession(true);
+  // Сбрасываем кнопку
+  const btn = document.getElementById('order-btn');
+  if(btn) { btn.disabled=false; btn.innerHTML='Добавить к заказу <i class="ti ti-send"></i>'; }
   showScreen('menu');
   renderMenu(currentCat||'all');
 }
