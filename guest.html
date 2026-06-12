@@ -452,9 +452,11 @@ async function handleOrderBtn() {
       sessionId=sid;
     }
 
+    // Если хоть одно блюдо с собой — весь заказ помечаем как с собой
+    const orderIsTakeaway = isTakeaway || items.some(i=>i.takeaway);
     const orderRes=await fetch(API+'/api/orders',{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({table_number:TABLE_NUM,guest_name:guestName,guest_name_display:guestName,items,session_id:sid,is_takeaway:isTakeaway})
+      body:JSON.stringify({table_number:TABLE_NUM,guest_name:guestName,guest_name_display:guestName,items,session_id:sid,is_takeaway:orderIsTakeaway})
     });
     const order=await orderRes.json();
     currentOrderId=order.id;
