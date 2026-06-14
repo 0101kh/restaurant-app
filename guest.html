@@ -1190,12 +1190,13 @@ async function requestPayment() {
 async function uploadReceipt(input) {
   const file = input.files[0];
   if(!file) return;
+  if(!currentOrderId) { alert('Сначала оформите заказ.'); return; }
 
   const btn = document.querySelector('#receipt-upload-block button');
   if(btn) { btn.innerHTML = '<div class="spinner"></div> Загружаем...'; btn.disabled = true; }
 
   try {
-    // читаем файл как data URL
+    // читаем фото как data URL (base64)
     const dataUrl = await new Promise((res, rej) => {
       const reader = new FileReader();
       reader.onload = e => res(e.target.result);
@@ -1203,40 +1204,30 @@ async function uploadReceipt(input) {
       reader.readAsDataURL(file);
     });
 
-    // загружаем на наш сервер (без токенов, без GitHub)
-    const uploadRes = await fetch(API + '/api/upload', {
+    // сохраняем чек прямо в заказе (в базе Neon — переживёт передеплои сервера)
+    const saveRes = await fetch(API + '/api/orders/' + currentOrderId, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ payment_receipt: dataUrl })
+    });
+    if(!saveRes.ok) throw new Error('Save failed');
+
+    // ссылка, по которой чек открывается (сервер отдаёт картинку из базы)
+    const receiptUrl = API + '/api/receipt/' + currentOrderId;
+
+    // уведомляем официанта
+    await fetch(API + '/api/payment/request', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ data: dataUrl, mimetype: file.type })
+      body: JSON.stringify({
+        session_id: sessionId,
+        guest_name: guestName,
+        table_number: TABLE_NUM,
+        total: 0,
+        method: 'Чек прикреплён',
+        receipt_url: receiptUrl
+      })
     });
-    if(!uploadRes.ok) throw new Error('Upload failed');
-    const uploaded = await uploadRes.json();
-
-    // на случай относительного пути делаем ссылку абсолютной
-    const receiptUrl = (uploaded.url && uploaded.url.startsWith('http')) ? uploaded.url : API + uploaded.url;
-
-    // сохраняем ссылку на чек в заказе
-    if(currentOrderId) {
-      await fetch(API + '/api/orders/' + currentOrderId, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ payment_receipt: receiptUrl })
-      });
-
-      // уведомляем официанта
-      await fetch(API + '/api/payment/request', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          session_id: sessionId,
-          guest_name: guestName,
-          table_number: TABLE_NUM,
-          total: 0,
-          method: 'Чек прикреплён',
-          receipt_url: receiptUrl
-        })
-      });
-    }
 
     document.getElementById('receipt-upload-block').style.display = 'none';
     document.getElementById('receipt-done').style.display = 'block';
