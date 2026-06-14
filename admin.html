@@ -93,6 +93,8 @@ textarea { resize:vertical;min-height:80px; }
       <div><div style="font-size:13px;color:var(--txt2);margin-bottom:6px;">Имя</div><input type="text" id="w-name" placeholder="Алишер" /></div>
       <div><div style="font-size:13px;color:var(--txt2);margin-bottom:6px;">Логин</div><input type="text" id="w-login" placeholder="alisher" /></div>
       <div><div style="font-size:13px;color:var(--txt2);margin-bottom:6px;">Пароль</div><input type="password" id="w-password" placeholder="••••••" /></div>
+      <div><div style="font-size:13px;color:var(--txt2);margin-bottom:6px;">Сервис на чек гостю, %</div><input type="number" id="w-service" min="0" max="100" step="1" placeholder="10" /></div>
+      <div><div style="font-size:13px;color:var(--txt2);margin-bottom:6px;">Ставка официанта (зарплата), %</div><input type="number" id="w-waiter-percent" min="0" max="100" step="1" placeholder="7" /></div>
       <div>
         <div style="font-size:13px;color:var(--txt2);margin-bottom:8px;">Столы (выберите зону)</div>
         <div id="w-tables-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;"></div>
@@ -440,9 +442,23 @@ let waiters = [];
 let editingWaiterId = null;
 let selectedTables = [];
 
+function adminServiceDayStart(){
+  const now=new Date(); const start=new Date(now); start.setHours(23,0,0,0);
+  if(now<start) start.setDate(start.getDate()-1);
+  return start;
+}
 async function loadWaiters() {
-  const res = await fetch(API+'/api/waiters');
-  waiters = await res.json();
+  const [wr, ar, hr] = await Promise.all([
+    fetch(API+'/api/waiters'),
+    fetch(API+'/api/orders/active'),
+    fetch(API+'/api/orders/history')
+  ]);
+  waiters = await wr.json();
+  let _dayOrders = [];
+  try { _dayOrders = [...await ar.json(), ...await hr.json()]; } catch(e){}
+  const _ds = adminServiceDayStart();
+  const _seen = new Set();
+  _dayOrders = _dayOrders.filter(o => { if(_seen.has(o.id)) return false; _seen.add(o.id); return new Date(o.created_at) >= _ds; });
   const el = document.getElementById('waiters-list');
   if(!waiters.length) {
     el.innerHTML='<div style="text-align:center;padding:32px;color:var(--txt3);">Нет официантов. Добавьте первого.</div>';
@@ -455,6 +471,8 @@ async function loadWaiters() {
           <div style="font-size:15px;font-weight:500;">${w.name}</div>
           <div style="font-size:13px;color:var(--txt2);">Логин: ${w.login}</div>
           <div style="font-size:12px;color:var(--txt3);margin-top:4px;">Столы: ${(w.tables||[]).length?w.tables.sort((a,b)=>a-b).map(t=>'Стол '+t).join(', '):'Не назначены'}</div>
+          <div style="font-size:12px;color:var(--txt3);margin-top:2px;">Сервис гостю: ${Number(w.service_percent||0)}% · Ставка офиц.: ${Number(w.waiter_percent||0)}%</div>
+          ${(()=>{ const sales=(_dayOrders||[]).filter(o=>(w.tables||[]).includes(o.table_number)).reduce((s,o)=>(o.items||[]).reduce((ss,i)=>ss+i.price*(i.qty||1),0)+s,0); const sal=Math.round(sales*Number(w.waiter_percent||0)/100); return `<div style="font-size:12px;color:#1a7a4a;font-weight:500;margin-top:6px;">Сегодня: продажи ${sales} ₽ · зарплата ${sal} ₽</div>`; })()}
         </div>
         <div style="display:flex;gap:8px;">
           <button class="btn-sec" onclick="editWaiter('${w.id}')"><i class="ti ti-edit"></i></button>
@@ -472,6 +490,8 @@ function openWaiterModal(waiter=null) {
   document.getElementById('w-name').value = waiter?.name||'';
   document.getElementById('w-login').value = waiter?.login||'';
   document.getElementById('w-password').value = '';
+  document.getElementById('w-service').value = (waiter && waiter.service_percent != null) ? waiter.service_percent : '';
+  document.getElementById('w-waiter-percent').value = (waiter && waiter.waiter_percent != null) ? waiter.waiter_percent : '';
   
   // Генерируем кнопки столов (1-15)
   const grid = document.getElementById('w-tables-grid');
@@ -503,7 +523,9 @@ async function saveWaiter() {
   if(!name||!login) { alert('Заполните имя и логин'); return; }
   if(!editingWaiterId && !password) { alert('Введите пароль'); return; }
   
-  const payload = { name, login, tables: selectedTables, active: true };
+  const service_percent = parseFloat(document.getElementById('w-service').value) || 0;
+  const waiter_percent = parseFloat(document.getElementById('w-waiter-percent').value) || 0;
+  const payload = { name, login, tables: selectedTables, active: true, service_percent, waiter_percent };
   if(password) payload.password = password;
   
   if(editingWaiterId) {

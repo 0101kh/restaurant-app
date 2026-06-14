@@ -563,10 +563,13 @@ async function loadHistory(){
     if(cnt) cnt.textContent = mine.length ? '('+mine.length+')' : '';
     if(!mine.length){ box.innerHTML='<div style="font-size:13px;color:var(--txt3);padding:8px 2px;">Заказов за сегодня пока нет</div>'; return; }
     const dayTotal = mine.reduce((s,o)=>(o.items||[]).reduce((ss,i)=>ss+i.price*(i.qty||1),0)+s,0);
+    const wRate = Number(waiterData?.waiter_percent||0);
+    const earned = Math.round(dayTotal*wRate/100);
     const SL = {new:'Новый',cooking:'Готовится',ready:'Готов',done:'Выдан',cancelled:'Отменён'};
     box.innerHTML =
       '<div style="display:flex;justify-content:space-between;font-size:13px;color:var(--txt2);padding:2px 2px 6px;">'
       + '<span>Заказов: '+mine.length+'</span><span>Сумма за день: '+dayTotal+' \u20bd</span></div>'
+      + (wRate>0 ? '<div style="background:var(--bg);border:0.5px solid var(--bdr);border-radius:var(--rm);padding:10px 14px;margin:2px 0 10px;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:13px;color:var(--txt2);">Заработано за день ('+wRate+'%)</span><span style="font-size:16px;font-weight:600;color:#1a7a4a;">'+earned+' \u20bd</span></div>' : '')
       + mine.map(function(o){
           const total=(o.items||[]).reduce(function(s,i){return s+i.price*(i.qty||1);},0);
           const time=new Date(o.created_at).toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'});
