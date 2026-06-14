@@ -245,10 +245,10 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgr
   <div style="background:var(--bg);min-height:100vh;padding:20px;">
     <button onclick="showScreen('status')" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;color:var(--txt2);font-size:14px;margin-bottom:16px;font-family:inherit;padding:0;"><i class="ti ti-arrow-left"></i> Назад</button>
     <h2 style="font-size:24px;font-weight:500;margin-bottom:6px;">Оплата</h2>
-    <p style="font-size:13px;color:var(--txt2);margin-bottom:20px;">Выберите способ и сумму оплаты</p>
+    <p id="split-subtitle" style="font-size:13px;color:var(--txt2);margin-bottom:20px;">Выберите способ и сумму оплаты</p>
 
     <!-- Выбор суммы -->
-    <div style="display:flex;gap:10px;margin-bottom:20px;">
+    <div id="pay-type-block" style="display:flex;gap:10px;margin-bottom:20px;">
       <div id="pay-together-btn" onclick="selectPayType('together')" style="flex:1;background:var(--green-bg);border:2px solid var(--green);border-radius:var(--r);padding:14px;text-align:center;cursor:pointer;">
         <div style="font-size:12px;color:var(--txt2);margin-bottom:4px;">Весь стол</div>
         <div style="font-size:20px;font-weight:600;color:var(--green-light);" id="split-together">0 ₽</div>
@@ -1286,6 +1286,11 @@ function showSplit() {
   const mine=myOrder?(myOrder.items||[]).reduce((s,i)=>s+i.price*(i.qty||1),0):0;
   _billTotals={ total, mine };
   renderSplitTotals();
+  const single = isTakeaway || tableOrders.length <= 1;
+  const ptBlock = document.getElementById("pay-type-block");
+  if(ptBlock) ptBlock.style.display = single ? "none" : "flex";
+  const subEl = document.getElementById("split-subtitle");
+  if(subEl) subEl.textContent = single ? "Проверьте счёт и выберите способ оплаты" : "Выберите способ и сумму оплаты";
   // Reset payment UI
   document.getElementById('pay-success').style.display='none';
   const btn=document.getElementById('pay-request-btn');
