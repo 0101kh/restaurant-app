@@ -134,6 +134,14 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgr
 
     <!-- Запросы оплаты -->
     <div id="payment-requests" style="margin-top:20px;display:flex;flex-direction:column;gap:12px;"></div>
+
+    <!-- История за сегодня -->
+    <div style="margin-top:24px;">
+      <button onclick="toggleHistory()" id="history-toggle" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--bg);border:0.5px solid var(--bdr);border-radius:var(--rm);padding:12px;font-size:14px;color:var(--txt2);cursor:pointer;font-family:inherit;">
+        <i class="ti ti-history"></i> История за сегодня <span id="history-count" style="color:var(--txt3);"></span>
+      </button>
+      <div id="history-list" style="display:none;flex-direction:column;gap:10px;margin-top:12px;"></div>
+    </div>
   </div>
 </div>
 
@@ -146,6 +154,9 @@ let waiterData = null;
 let orders = [];
 let paymentRequests = [];
 let ws = null;
+let historyOpen = false;
+let _histTimer = null;
+const DAY_CUTOFF_HOUR = 23; // в это время рабочий день закрывается и начинается новый
 
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => {
@@ -348,6 +359,7 @@ function connectWS() {
 function mins(at){ return Math.floor((Date.now()-new Date(at).getTime())/60000); }
 
 function renderOrders() {
+  refreshHistorySoon();
   const nw = orders.filter(o=>o.status==='new');
   const rd = orders.filter(o=>o.status==='ready');
   document.getElementById('w-stat-new').textContent = nw.length;
@@ -510,6 +522,66 @@ if(saved) {
     startApp();
   } catch(e) { localStorage.removeItem(STORAGE_KEY); }
 }
+
+// ===== История заказов за сегодня (сброс в 23:00) =====
+function serviceDayStart(){
+  const now = new Date();
+  const start = new Date(now);
+  start.setHours(DAY_CUTOFF_HOUR, 0, 0, 0);
+  if(now < start) start.setDate(start.getDate() - 1);
+  return start;
+}
+function refreshHistorySoon(){
+  if(!historyOpen) return;
+  clearTimeout(_histTimer);
+  _histTimer = setTimeout(loadHistory, 600);
+}
+function toggleHistory(){
+  historyOpen = !historyOpen;
+  const box = document.getElementById('history-list');
+  box.style.display = historyOpen ? 'flex' : 'none';
+  if(historyOpen) loadHistory();
+}
+async function loadHistory(){
+  const tables = waiterData?.tables || [];
+  const box = document.getElementById('history-list');
+  const cnt = document.getElementById('history-count');
+  if(!box) return;
+  if(!tables.length){ box.innerHTML='<div style="font-size:13px;color:var(--txt3);padding:8px 2px;">Нет назначенных столов</div>'; return; }
+  try{
+    const [ar,hr] = await Promise.all([
+      fetch(API+'/api/orders/active'),
+      fetch(API+'/api/orders/history')
+    ]);
+    const all = [...await ar.json(), ...await hr.json()];
+    const dayStart = serviceDayStart();
+    const seen = new Set();
+    const mine = all
+      .filter(o => tables.includes(o.table_number) && new Date(o.created_at) >= dayStart)
+      .filter(o => seen.has(o.id) ? false : (seen.add(o.id), true))
+      .sort((x,y)=>new Date(y.created_at)-new Date(x.created_at));
+    if(cnt) cnt.textContent = mine.length ? '('+mine.length+')' : '';
+    if(!mine.length){ box.innerHTML='<div style="font-size:13px;color:var(--txt3);padding:8px 2px;">Заказов за сегодня пока нет</div>'; return; }
+    const dayTotal = mine.reduce((s,o)=>(o.items||[]).reduce((ss,i)=>ss+i.price*(i.qty||1),0)+s,0);
+    const SL = {new:'Новый',cooking:'Готовится',ready:'Готов',done:'Выдан',cancelled:'Отменён'};
+    box.innerHTML =
+      '<div style="display:flex;justify-content:space-between;font-size:13px;color:var(--txt2);padding:2px 2px 6px;">'
+      + '<span>Заказов: '+mine.length+'</span><span>Сумма за день: '+dayTotal+' \u20bd</span></div>'
+      + mine.map(function(o){
+          const total=(o.items||[]).reduce(function(s,i){return s+i.price*(i.qty||1);},0);
+          const time=new Date(o.created_at).toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'});
+          const items=(o.items||[]).map(function(i){return i.name+(i.qty>1?' \u00d7'+i.qty:'');}).join(', ');
+          return '<div style="background:var(--bg);border:0.5px solid var(--bdr);border-radius:var(--rm);padding:12px 14px;">'
+            + '<div style="display:flex;justify-content:space-between;align-items:center;">'
+            + '<div style="font-size:14px;font-weight:500;">Стол '+o.table_number+' \u00b7 '+o.guest_name+'</div>'
+            + '<div style="font-size:13px;font-weight:500;color:#1a7a4a;">'+total+' \u20bd</div></div>'
+            + '<div style="font-size:12px;color:var(--txt3);margin-top:4px;">'+time+' \u00b7 '+(SL[o.status]||o.status)+'</div>'
+            + (items?'<div style="font-size:12px;color:var(--txt2);margin-top:4px;">'+items+'</div>':'')
+            + '</div>';
+        }).join('');
+  }catch(e){ console.error(e); box.innerHTML='<div style="font-size:13px;color:#c00;padding:8px 2px;">Ошибка загрузки</div>'; }
+}
+
 </script>
 </body>
 </html>
