@@ -599,6 +599,7 @@ let guestName = '';
 let currentCat = 'all';
 let currentOrderId = null;
 let sessionId = SHARED_SESSION || null;
+let _readyShownFor = null;
 let tableOrders = [];
 let ws = null;
 let isAddingMore = false;
@@ -869,7 +870,8 @@ function subscribeToMyOrder(orderId, wasTakeaway) {
   const checkReady = (msg) => {
     if(msg.type==='order_updated' && msg.order.id===orderId) {
       updateStatusUI(msg.order.status);
-      if(msg.order.status==='ready') {
+      if(msg.order.status==='ready' && _readyShownFor!==orderId) {
+        _readyShownFor = orderId;
         showReadyNotification(wasTakeaway);
       }
     }
@@ -937,25 +939,40 @@ async function orderTakeaway() {
 }
 
 function shareMenu() {
-  const shareUrl = `${window.location.origin}${window.location.pathname}?table=${TABLE_NUM}&session=${sessionId}`;
+  const base = `${window.location.origin}${window.location.pathname}?table=${TABLE_NUM}`;
+  const shareUrl = sessionId ? `${base}&session=${sessionId}` : base;
+  const txt = 'Присоединяйся к нашему столу — выбери блюда 🍽️ ';
   if(navigator.share) {
-    navigator.share({
-      title:'Меню ресторана',
-      text:'Выбери что хочешь 🍽️ Заказ добавится к нашему столу!',
-      url:shareUrl
-    }).catch(()=>{});
-  } else if(navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(shareUrl).then(()=>{
-      alert('Ссылка скопирована! Отправь другу — его заказ добавится к вашему столу.');
-    }).catch(()=>{ prompt('Скопируй ссылку:',shareUrl); });
-  } else {
-    try {
-      const ta=document.createElement('textarea'); ta.value=shareUrl; ta.style.position='fixed'; ta.style.opacity='0';
-      document.body.appendChild(ta); ta.focus(); ta.select();
-      const ok=document.execCommand('copy'); document.body.removeChild(ta);
-      if(ok) alert('Ссылка скопирована! Отправь другу.'); else prompt('Скопируй ссылку:',shareUrl);
-    } catch(e){ prompt('Скопируй ссылку:',shareUrl); }
+    navigator.share({ title:'Меню ресторана', text:'Выбери что хочешь 🍽️ Заказ добавится к нашему столу!', url:shareUrl }).catch(()=>{});
+    return;
   }
+  let ov = document.getElementById('share-overlay');
+  if(ov) ov.remove();
+  ov = document.createElement('div');
+  ov.id = 'share-overlay';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.6);display:flex;align-items:flex-end;justify-content:center;';
+  ov.innerHTML = `
+    <div style="background:#fff;width:100%;max-width:480px;border-radius:18px 18px 0 0;padding:22px;color:#1c2a22;">
+      <div style="font-size:17px;font-weight:600;margin-bottom:14px;">Поделиться столом</div>
+      <input id="share-link-input" readonly value="${shareUrl}" style="width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;font-size:13px;margin-bottom:12px;color:#1c2a22;" />
+      <button onclick="copyShareLink(this)" style="width:100%;padding:13px;background:#1a7a4a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:500;margin-bottom:12px;cursor:pointer;font-family:inherit;">Скопировать ссылку</button>
+      <div style="display:flex;gap:10px;margin-bottom:12px;">
+        <a href="https://wa.me/?text=${encodeURIComponent(txt + shareUrl)}" target="_blank" rel="noopener" style="flex:1;text-align:center;padding:13px;background:#25D366;color:#fff;border-radius:10px;text-decoration:none;font-size:14px;font-weight:500;">WhatsApp</a>
+        <a href="https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(txt)}" target="_blank" rel="noopener" style="flex:1;text-align:center;padding:13px;background:#229ED9;color:#fff;border-radius:10px;text-decoration:none;font-size:14px;font-weight:500;">Telegram</a>
+      </div>
+      <button onclick="document.getElementById('share-overlay').remove()" style="width:100%;padding:11px;background:none;border:none;color:#888;font-size:14px;cursor:pointer;font-family:inherit;">Закрыть</button>
+    </div>`;
+  ov.addEventListener('click', e => { if(e.target===ov) ov.remove(); });
+  document.body.appendChild(ov);
+}
+function copyShareLink(btn) {
+  const inp = document.getElementById('share-link-input');
+  if(!inp) return;
+  inp.focus(); inp.select(); try{ inp.setSelectionRange(0,99999); }catch(e){}
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch(e){}
+  if(navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(inp.value).catch(()=>{}); ok = true; }
+  if(btn && ok) { const t=btn.textContent; btn.textContent='Скопировано ✓'; setTimeout(()=>{ btn.textContent=t; }, 1500); }
 }
 
 function updateStatusUI(status) {
