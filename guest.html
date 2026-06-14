@@ -307,8 +307,8 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgr
         </button>
       </div>
       <div id="receipt-done" style="display:none;text-align:center;padding:10px 0;">
-        <div style="font-size:13px;color:var(--green-light);font-weight:500;"><i class="ti ti-check"></i> Чек прикреплён — можете уходить!</div>
-        <div style="font-size:12px;color:var(--txt3);margin-top:4px;">Официант проверит и закроет стол</div>
+        <div style="font-size:13px;color:var(--green-light);font-weight:500;"><i class="ti ti-heart"></i> Спасибо, что были у нас!</div>
+        <div style="font-size:12px;color:var(--txt3);margin-top:4px;">Чек получен 🙏 Официант всё проверит. Будем рады видеть вас снова!</div>
       </div>
     </div>
   </div>
@@ -437,7 +437,7 @@ const TRANSLATIONS = {
     waiter_notified: 'Официант уведомлён!',
     attach_receipt: 'Прикрепить скриншот чека',
     receipt_done: 'Чек прикреплён — можете уходить!',
-    waiter_will_check: 'Официант проверит и закроет стол',
+    waiter_will_check: 'Чек получен 🙏 Официант всё проверит. Будем рады видеть вас снова!',
     adding_items: '+ Добавляется к вашему заказу',
     takeaway_banner: 'Заказ с собой — выберите блюда',
     share_text: 'Выбери что хочешь 🍽️ Заказ добавится к нашему столу!',
@@ -898,24 +898,28 @@ function closeReadyNotification() {
   document.getElementById('ready-notification').classList.remove('show');
 }
 
-function addMoreItems() {
+async function addMoreItems() {
   isAddingMore=true;isTakeaway=false;
   cart={};
   saveSession(true);
   const btn=document.getElementById('order-btn');
   if(btn){btn.disabled=false;btn.innerHTML='Добавить к заказу <i class="ti ti-send"></i>';}
   showScreen('menu');
+  if(!MENU||!MENU.length){document.getElementById('menu-list').innerHTML='<div style="text-align:center;padding:60px 0;color:var(--txt3);">Загружаем меню...</div>';}
+  await loadMenu();
   renderMenu(currentCat||'all');
   const backBtn=document.getElementById('menu-back-btn');
   if(backBtn) backBtn.style.display='block';
 }
 
-function orderTakeaway() {
+async function orderTakeaway() {
   isTakeaway=true;isAddingMore=false;
   cart={};
   const btn=document.getElementById('order-btn');
   if(btn){btn.disabled=false;btn.innerHTML='Заказать с собой <i class="ti ti-shopping-bag"></i>';}
   showScreen('menu');
+  if(!MENU||!MENU.length){document.getElementById('menu-list').innerHTML='<div style="text-align:center;padding:60px 0;color:var(--txt3);">Загружаем меню...</div>';}
+  await loadMenu();
   renderMenu(currentCat||'all');
   const backBtn=document.getElementById('menu-back-btn');
   if(backBtn) backBtn.style.display='block';
@@ -939,13 +943,18 @@ function shareMenu() {
       title:'Меню ресторана',
       text:'Выбери что хочешь 🍽️ Заказ добавится к нашему столу!',
       url:shareUrl
-    });
-  } else {
+    }).catch(()=>{});
+  } else if(navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(shareUrl).then(()=>{
-      alert('Ссылка скопирована!\n\nОтправь другу — они откроют меню и их заказ добавится к вашему столу.');
-    }).catch(()=>{
-      prompt('Скопируй ссылку:',shareUrl);
-    });
+      alert('Ссылка скопирована! Отправь другу — его заказ добавится к вашему столу.');
+    }).catch(()=>{ prompt('Скопируй ссылку:',shareUrl); });
+  } else {
+    try {
+      const ta=document.createElement('textarea'); ta.value=shareUrl; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      const ok=document.execCommand('copy'); document.body.removeChild(ta);
+      if(ok) alert('Ссылка скопирована! Отправь другу.'); else prompt('Скопируй ссылку:',shareUrl);
+    } catch(e){ prompt('Скопируй ссылку:',shareUrl); }
   }
 }
 
