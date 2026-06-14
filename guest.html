@@ -1190,36 +1190,40 @@ async function requestPayment() {
 async function uploadReceipt(input) {
   const file = input.files[0];
   if(!file) return;
-  
+
   const btn = document.querySelector('#receipt-upload-block button');
   if(btn) { btn.innerHTML = '<div class="spinner"></div> Загружаем...'; btn.disabled = true; }
-  
+
   try {
-    // Загружаем в GitHub
-    const GITHUB_TOKEN = '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';
-    const reader = new FileReader();
-    const b64 = await new Promise(res => { reader.onload = e => res(e.target.result.split(',')[1]); reader.readAsDataURL(file); });
-    const fname = 'receipt_' + Date.now() + '.' + file.name.split('.').pop();
-    
-    const uploadRes = await fetch(`https://api.github.com/repos/0101kh/restaurant-app/contents/images/${fname}`, {
-      method: 'PUT',
-      headers: { 'Authorization': 'token ' + GITHUB_TOKEN, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: 'Receipt ' + fname, content: b64 })
+    // читаем файл как data URL
+    const dataUrl = await new Promise((res, rej) => {
+      const reader = new FileReader();
+      reader.onload = e => res(e.target.result);
+      reader.onerror = rej;
+      reader.readAsDataURL(file);
     });
-    
+
+    // загружаем на наш сервер (без токенов, без GitHub)
+    const uploadRes = await fetch(API + '/api/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data: dataUrl, mimetype: file.type })
+    });
     if(!uploadRes.ok) throw new Error('Upload failed');
-    
-    const receiptUrl = `https://0101kh.github.io/restaurant-app/images/${fname}`;
-    
-    // Сохраняем URL чека в заказе
+    const uploaded = await uploadRes.json();
+
+    // на случай относительного пути делаем ссылку абсолютной
+    const receiptUrl = (uploaded.url && uploaded.url.startsWith('http')) ? uploaded.url : API + uploaded.url;
+
+    // сохраняем ссылку на чек в заказе
     if(currentOrderId) {
       await fetch(API + '/api/orders/' + currentOrderId, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ payment_receipt: receiptUrl })
       });
-      
-      // Уведомляем официанта через WebSocket
+
+      // уведомляем официанта
       await fetch(API + '/api/payment/request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1233,10 +1237,10 @@ async function uploadReceipt(input) {
         })
       });
     }
-    
+
     document.getElementById('receipt-upload-block').style.display = 'none';
     document.getElementById('receipt-done').style.display = 'block';
-    
+
   } catch(e) {
     console.error(e);
     if(btn) { btn.innerHTML = '<i class="ti ti-camera"></i> Попробовать снова'; btn.disabled = false; }
