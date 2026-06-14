@@ -320,6 +320,11 @@ const WS_URL = 'wss://restaurant-api-production-4fdd.up.railway.app';
 
 const params = new URLSearchParams(window.location.search);
 const TABLE_NUM = parseInt(params.get('table')) || 1;
+let servicePercent = 0;
+fetch(API + '/api/service/' + TABLE_NUM)
+  .then(r => r.json())
+  .then(d => { servicePercent = Number(d.service_percent) || 0; if(typeof renderSplitTotals==='function') renderSplitTotals(); })
+  .catch(()=>{});
 const SHARED_SESSION = params.get('session') || null; // сессия из ссылки
 const IS_SHARED = !!SHARED_SESSION; // пришёл по ссылке
 
@@ -1122,9 +1127,10 @@ function selectPayMethod(method) {
 function openSbpApp() {
   const phone = appSettings.sbp_phone || '';
   const name = appSettings.sbp_name || '';
-  const total = selectedPayType==='together'
+  const _sub = selectedPayType==='together'
     ? tableOrders.reduce((s,o)=>(o.items||[]).reduce((ss,i)=>ss+i.price*(i.qty||1),0)+s,0)
     : tableOrders.find(o=>o.id===currentOrderId) ? (tableOrders.find(o=>o.id===currentOrderId).items||[]).reduce((s,i)=>s+i.price*(i.qty||1),0) : 0;
+  const total = _sub + svc(_sub);
 
   if(!phone) {
     alert('Номер СБП не настроен. Попросите официанта.');
@@ -1157,9 +1163,10 @@ function openSbpApp() {
 
 async function requestPayment() {
   if(!sessionId) { alert('Сначала сделайте заказ'); return; }
-  const total = selectedPayType==='together'
+  const _sub = selectedPayType==='together'
     ? tableOrders.reduce((s,o)=>(o.items||[]).reduce((ss,i)=>ss+i.price*(i.qty||1),0)+s,0)
     : tableOrders.find(o=>o.id===currentOrderId) ? (tableOrders.find(o=>o.id===currentOrderId).items||[]).reduce((s,i)=>s+i.price*(i.qty||1),0) : 0;
+  const total = _sub + svc(_sub);
   
   const methodNames = {sbp:'СБП',card:'Карта',cash:'Наличные'};
   const btn = document.getElementById('pay-request-btn');
@@ -1239,12 +1246,20 @@ async function uploadReceipt(input) {
   }
 }
 
+function svc(amount){ return Math.round((amount||0) * (servicePercent||0) / 100); }
+let _billTotals = { total:0, mine:0 };
+function renderSplitTotals(){
+  const t=_billTotals.total, m=_billTotals.mine;
+  const te=document.getElementById('split-together'), me=document.getElementById('split-mine');
+  if(te) te.textContent=(t+svc(t))+' ₽';
+  if(me) me.textContent=(m+svc(m))+' ₽';
+}
 function showSplit() {
   const total=tableOrders.reduce((s,o)=>(o.items||[]).reduce((ss,i)=>ss+i.price*(i.qty||1),0)+s,0);
   const myOrder=tableOrders.find(o=>o.id===currentOrderId);
   const mine=myOrder?(myOrder.items||[]).reduce((s,i)=>s+i.price*(i.qty||1),0):0;
-  document.getElementById('split-together').textContent=total+' ₽';
-  document.getElementById('split-mine').textContent=mine+' ₽';
+  _billTotals={ total, mine };
+  renderSplitTotals();
   // Reset payment UI
   document.getElementById('pay-success').style.display='none';
   const btn=document.getElementById('pay-request-btn');
@@ -1300,9 +1315,16 @@ function showSplitDetail(type) {
         ${type==='together'?'Общий счёт':'Мой счёт'}
       </div>
       ${itemsHtml}
+      ${servicePercent>0?`
+      <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--txt2);padding-top:12px;margin-top:6px;border-top:1px dashed rgba(255,255,255,0.08);">
+        <span>Сумма заказа</span><span>${amt} ₽</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--txt2);padding:4px 0;">
+        <span>Обслуживание ${servicePercent}%</span><span>+${svc(amt)} ₽</span>
+      </div>`:''}
       <div style="display:flex;justify-content:space-between;align-items:center;padding-top:14px;margin-top:8px;border-top:2px solid var(--green-border);">
         <span style="font-size:15px;font-weight:500;">К оплате</span>
-        <span style="font-size:28px;font-weight:600;color:var(--green-light);">${amt} ₽</span>
+        <span style="font-size:28px;font-weight:600;color:var(--green-light);">${amt+svc(amt)} ₽</span>
       </div>
       <div style="font-size:12px;color:var(--txt3);margin-top:12px;text-align:center;">Попросите официанта принести счёт</div>
     </div>`;
